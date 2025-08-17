@@ -6,3 +6,11 @@ C:\Users\chesa\OneDrive\Desktop\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381
 C:\Users\chesa\OneDrive\Desktop\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.exe
 C:\Users\chesa\OneDrive\Desktop\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.pdb
 C:\Users\chesa\OneDrive\Desktop\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.exe.config
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.csproj.AssemblyReference.cache
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.exe.config
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.csproj.CoreCompileInputs.cache
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.exe
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\obj\Debug\LPR381_Solver.pdb
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\bin\Debug\LPR381_Solver.exe.config
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\bin\Debug\LPR381_Solver.exe
+D:\Personal\3rdYear\LPR381\LPR381-LinearProgrammingConsoleApp\LPR381_Solver\LPR381_Solver\bin\Debug\LPR381_Solver.pdb
