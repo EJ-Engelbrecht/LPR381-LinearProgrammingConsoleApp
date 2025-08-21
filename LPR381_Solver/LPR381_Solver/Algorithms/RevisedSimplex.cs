@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LPR381.Core
+namespace LPR381_Solver.Algorithms
 {
     public class RevisedSimplex
     {
