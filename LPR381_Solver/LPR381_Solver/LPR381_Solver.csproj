@@ -45,10 +45,14 @@
   <ItemGroup>
     <Compile Include="Algorithms\BranchAndBound.cs" />
     <Compile Include="Algorithms\CuttingPlane.cs" />
-    <Compile Include="Algorithms\DualitySolver.cs" />
+    <Compile Include="Algorithms\DualSimplex.cs" />
     <Compile Include="Algorithms\KnapsackBranchBound.cs" />
     <Compile Include="Algorithms\RevisedSimplex.cs" />
     <Compile Include="Algorithms\PrimalSimplex.cs" />
+    <Compile Include="Displays\BranchAndBoundDisplay.cs" />
+    <Compile Include="Displays\CuttingPlaneDisplay.cs" />
+    <Compile Include="Displays\KnapsackDisplay.cs" />
+    <Compile Include="Displays\PrimalSimplexDisplay.cs" />
     <Compile Include="Input\InputParser.cs" />
     <Compile Include="Models\Constraint.cs" />
     <Compile Include="Models\LPModel.cs" />
@@ -57,7 +61,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sensitivity\SensitivityAnalyzer.cs" />
-    <Compile Include="Utils\CanonicalFormConverter.cs" />
     <Compile Include="Utils\MatrixHelper.cs" />
   </ItemGroup>
   <ItemGroup>

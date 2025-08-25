@@ -4,6 +4,27 @@ using System.Linq;
 
 namespace LPR381_Solver.Algorithms
 {
+    // Local interfaces and classes to avoid external dependencies
+    public interface IIterationLogger
+    {
+        void Log(string message);
+        void LogHeader(string title);
+    }
+    
+    public class SolveResult
+    {
+        public string Status { get; set; } = "Unknown";
+        public double Objective { get; set; }
+        public double[] X { get; set; } = new double[0];
+        public int Iterations { get; set; } = 0;
+    }
+    
+    public class CanonicalForm
+    {
+        public ProblemSense Sense { get; set; }
+    }
+    
+    public enum ProblemSense { Max, Min }
     public class PrimalSimplex
     {
         private readonly IIterationLogger _log;
@@ -79,5 +100,45 @@ namespace LPR381_Solver.Algorithms
             }
         }
 
+        private void BuildTableau(CanonicalForm cf, out double[,] T, out int[] basis, out string[] varNames, out int objRow, out int rhsCol)
+        {
+            // Placeholder implementation
+            T = new double[1, 1];
+            basis = new int[1];
+            varNames = new string[1];
+            objRow = 0;
+            rhsCol = 0;
+        }
+
+        private int ChooseEntering(double[,] T, int objRow)
+        {
+            // Placeholder implementation
+            return -1;
+        }
+
+        private int ChooseLeaving(double[,] T, int enter, int rhsCol, out bool unbounded)
+        {
+            // Placeholder implementation
+            unbounded = false;
+            return 0;
+        }
+
+        private void Pivot(double[,] T, int leave, int enter)
+        {
+            // Placeholder implementation
+        }
+
+        private bool HasPositiveArtificial(string[] varNames, int[] basis, out int artIndex)
+        {
+            // Placeholder implementation
+            artIndex = -1;
+            return false;
+        }
+
+        private void PrintTableau(double[,] T, int objRow, int rhsCol, string[] varNames, int[] basis)
+        {
+            // Placeholder implementation
+            _log.Log("Tableau printed");
+        }
     }
 }

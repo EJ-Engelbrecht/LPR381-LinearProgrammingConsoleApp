@@ -1,6 +1,12 @@
+<<<<<<< Updated upstream
 using LPR381_Solver.Algorithms;
 using LPR381_Solver.Utils;
 using System;
+=======
+using System;
+using System.Linq;
+using LPR381_Solver.Displays;
+>>>>>>> Stashed changes
 
 namespace LPR381_Solver
 {
@@ -8,6 +14,7 @@ namespace LPR381_Solver
     {
         static void Main(string[] args)
         {
+<<<<<<< Updated upstream
             while (true)
             {
                 Console.Clear();
@@ -55,6 +62,64 @@ namespace LPR381_Solver
 
                 Console.WriteLine("\nPress any key to continue...");
                 Console.ReadKey();
+=======
+            bool useAscii = args.Contains("--ascii");
+            bool useColor = !args.Contains("--no-color");
+            
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("LPR381 Solver - Algorithm Displays");
+                Console.WriteLine("===================================");
+                Console.WriteLine("1. Knapsack Branch & Bound");
+                Console.WriteLine("2. Primal Simplex Solution");
+                Console.WriteLine("3. Cutting Plane Algorithm");
+                Console.WriteLine("4. Branch & Bound (Integer LP)");
+                Console.WriteLine("5. Run All");
+                Console.WriteLine("0. Exit");
+                Console.WriteLine();
+                Console.Write("Select option (0-5): ");
+                
+                string choice = Console.ReadLine();
+                Console.WriteLine();
+                
+                switch (choice)
+                {
+                    case "0":
+                        return;
+                    case "1":
+                        KnapsackDisplay.Run(useAscii);
+                        break;
+                    case "2":
+                        PrimalSimplexDisplay.Run(useAscii, useColor);
+                        break;
+                    case "3":
+                        CuttingPlaneDisplay.Run(useAscii, useColor);
+                        break;
+                    case "4":
+                        BranchAndBoundDisplay.Run(useAscii, useColor);
+                        break;
+                    case "5":
+                        Console.WriteLine("=== Knapsack Branch & Bound ===");
+                        KnapsackDisplay.Run(useAscii);
+                        Console.WriteLine("\n\n=== Primal Simplex Solution ===");
+                        PrimalSimplexDisplay.Run(useAscii, useColor);
+                        Console.WriteLine("\n\n=== Cutting Plane Algorithm ===");
+                        CuttingPlaneDisplay.Run(useAscii, useColor);
+                        Console.WriteLine("\n\n=== Branch & Bound (Integer LP) ===");
+                        BranchAndBoundDisplay.Run(useAscii, useColor);
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice. Try again.");
+                        break;
+                }
+                
+                if (choice != "0")
+                {
+                    Console.WriteLine("\nPress Enter to return to menu...");
+                    Console.ReadLine();
+                }
+>>>>>>> Stashed changes
             }
         }
     }

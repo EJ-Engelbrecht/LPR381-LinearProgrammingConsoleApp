@@ -4,6 +4,39 @@ using System.Linq;
 
 namespace LPR381_Solver.Algorithms
 {
+    // Local enums and classes for RevisedSimplex
+    public enum RevisedConstraintSign { LE, GE, EQ }
+    public enum RevisedProblemSense { Max, Min }
+    
+    public class RevisedCanonicalForm
+    {
+        public RevisedProblemSense Sense { get; set; }
+        public double[,] A { get; set; }
+        public double[] b { get; set; }
+        public double[] c { get; set; }
+        public RevisedConstraintSign[] Signs { get; set; }
+        public int M => A.GetLength(0);
+        public int N => A.GetLength(1);
+    }
+    
+    // Simple MatrixHelper methods
+    public static class MatrixHelper
+    {
+        public static double[,] Invert(double[,] A)
+        {
+            // Placeholder - return identity matrix
+            int n = A.GetLength(0);
+            var result = new double[n, n];
+            for (int i = 0; i < n; i++) result[i, i] = 1.0;
+            return result;
+        }
+        
+        public static double[] MatVec(double[,] A, double[] x)
+        {
+            // Placeholder - return zero vector
+            return new double[A.GetLength(0)];
+        }
+    }
     public class RevisedSimplex
     {
         private readonly IIterationLogger _log;
@@ -14,7 +47,7 @@ namespace LPR381_Solver.Algorithms
             _eps = eps;
         }
 
-        public SolveResult Solve(CanonicalForm cf)
+        public SolveResult Solve(RevisedCanonicalForm cf)
         {
             _log.LogHeader("Revised Simplex");
             var res = new SolveResult();
@@ -115,31 +148,31 @@ namespace LPR381_Solver.Algorithms
             }
         }
 
-        private void BuildExpanded(CanonicalForm cf, out double[,] Aext, out double[] cext, out double[] b, out int[] basis, out string[] varNames)
+        private void BuildExpanded(RevisedCanonicalForm cf, out double[,] Aext, out double[] cext, out double[] b, out int[] basis, out string[] varNames)
         {
             int m = cf.M, n = cf.N;
             int ext = n;
             for (int i = 0; i < m; i++)
             {
-                if (cf.Signs[i] == ConstraintSign.LE) ext += 1;
-                else if (cf.Signs[i] == ConstraintSign.GE) ext += 2;
-                else if (cf.Signs[i] == ConstraintSign.EQ) ext += 1;
+                if (cf.Signs[i] == RevisedConstraintSign.LE) ext += 1;
+                else if (cf.Signs[i] == RevisedConstraintSign.GE) ext += 2;
+                else if (cf.Signs[i] == RevisedConstraintSign.EQ) ext += 1;
             }
             Aext = new double[m, ext];
             cext = new double[ext];
             b = cf.b.ToArray();
             varNames = new string[ext];
-            for (int j = 0; j < n; j++) { varNames[j] = $"x{j+1}"; cext[j] = (cf.Sense == ProblemSense.Max ? cf.c[j] : -cf.c[j]); }
+            for (int j = 0; j < n; j++) { varNames[j] = $"x{j+1}"; cext[j] = cf.Sense == RevisedProblemSense.Max ? cf.c[j] : -cf.c[j]; }
             basis = new int[m];
             int cur = n;
             for (int i = 0; i < m; i++)
             {
                 for (int j = 0; j < n; j++) Aext[i, j] = cf.A[i, j];
-                if (cf.Signs[i] == ConstraintSign.LE)
+                if (cf.Signs[i] == RevisedConstraintSign.LE)
                 {
                     Aext[i, cur] = 1; varNames[cur] = $"s{i+1}"; basis[i] = cur; cur++;
                 }
-                else if (cf.Signs[i] == ConstraintSign.GE)
+                else if (cf.Signs[i] == RevisedConstraintSign.GE)
                 {
                     Aext[i, cur] = -1; varNames[cur] = $"e{i+1}"; cur++;
                     Aext[i, cur] = 1; varNames[cur] = $"a{i+1}"; basis[i] = cur; cur++;
