@@ -1,88 +1,11 @@
-#PrimalSimplex
-#S1
-max z = 3x1 + 2x2
-c1: x1 + x2 <= 4
-c2: 2x1 + x2 <= 6
+# Feasible LP (max)
+max +2 +3
++1 +2 <= 8
++2 +1 <= 8
++1 +1 <= 5
++ +
 
-#S2
-min z = 2x1 + 3x2
-c1: x1 + 2x2 >= 4
-c2: 2x1 + x2 >= 3
-
-#BranchAndBound
-#B1
-max z = 3x1 + 2x2
-c1: x1 + x2 <= 4
-c2: 2x1 + x2 <= 6
-
-#B2
-min z = 2x1 + 3x2
-c1: x1 + 2x2 >= 4
-c2: 2x1 + x2 >= 3
-
-#B3
-max z = 5x1 + 4x2
-c1: x1 + x2 <= 5
-c2: 2x1 + x2 <= 8
-
-#B4
-min z = x1 + 2x2
-c1: x1 + x2 >= 3
-c2: 2x1 + 3x2 >= 6
-
-#B5
-max z = 4x1 + 3x2
-c1: 2x1 + x2 <= 6
-c2: x1 + 2x2 <= 6
-
-#B6
-min z = 3x1 + 4x2
-c1: x1 + 2x2 >= 5
-c2: 2x1 + x2 >= 4
-
-#B7
-max z = 6x1 + 5x2
-c1: x1 + x2 <= 3
-c2: 2x1 + 3x2 <= 8
-
-#DualitySolver
-#D1
-max z = 3x1 + 2x2
-c1: x1 + x2 <= 4
-c2: 2x1 + x2 <= 6
-
-#D2
-min z = 4x1 + 6x2
-c1: x1 + 2x2 >= 3
-c2: 3x1 + x2 >= 4
-
-#RevisedSimplex
-#R1
-max z = 3x1 + 5x2
-c1: x1 + 2x2 <= 8
-c2: 2x1 + x2 <= 10
-
-#R2
-min z = 2x1 + 4x2
-c1: x1 + x2 >= 3
-c2: 2x1 + 3x2 >= 6
-
-#CuttingPlane
-#C1
-max z = 7x1 + 9x2
-c1: x1 + 3x2 <= 6
-c2: 7x1 + x2 <= 35
-
-#C2
-min z = 2x1 + 3x2
-c1: x1 + x2 >= 4
-c2: 3x1 + 2x2 >= 8
-
-#KnapsackBranchBound
-#K1
-max z = 10x1 + 20x2 + 30x3
-c1: 5x1 + 10x2 + 15x3 <= 50
-
-#K2
-max z = 60x1 + 100x2 + 120x3
-c1: 10x1 + 20x2 + 30x3 <= 50
+# Integer Knapsack (binary)
+max +2 +3 +3 +5 +2 +4
++11 +8 +6 +14 +10 +10 <= 40
+bin bin bin bin bin bin
