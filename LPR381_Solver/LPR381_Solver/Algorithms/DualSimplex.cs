@@ -88,7 +88,7 @@ namespace LPR381_Solver.Algorithms
         }
     }
 
-rh    // Dual Simplex Implementation
+    // Dual Simplex Implementation
     public sealed class DualSimplex : ISimplexSolver
     {
         public event Action<IterationSnapshot> OnIter;

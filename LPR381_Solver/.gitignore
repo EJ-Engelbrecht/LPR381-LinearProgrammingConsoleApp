@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.db
+*.opendb
+*.cache
+*.dtbcache.json
+
+# Build outputs
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+*.pdb
+*.exe
+*.dll
+
+# IDE
+.vscode/
+.idea/
+_ReSharper*/
+*.DotSettings.user
