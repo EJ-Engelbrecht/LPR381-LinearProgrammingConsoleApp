@@ -1,4 +1,6 @@
-﻿namespace LPR381_WF
+﻿using System;
+
+namespace LPR381_WF
 {
     partial class Form1
     {
@@ -69,9 +71,13 @@
             this.cbxAlgo.Items.AddRange(new object[] {
             "Primal Simplex",
             "Revised Primal Simplex",
-            "Branch and Bound Simplex",
+            "Dual Simplex",
             "Cutting Plane",
-            "Branch and Bound Knapsack"});
+            "Branch and Bound Simplex",
+            "Revised Branch and Bound Simplex",
+            "Branch and Bound Knapsack",
+            "Graphical Method",
+            "Non-Linear Solver (Bonus)"});
             this.cbxAlgo.Location = new System.Drawing.Point(112, 16);
             this.cbxAlgo.Name = "cbxAlgo";
             this.cbxAlgo.Size = new System.Drawing.Size(192, 21);
@@ -184,6 +190,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.lblSensitivity);
             this.Controls.Add(this.cbxSensitivity);

@@ -38,6 +38,8 @@ namespace LPR381_Solver.Models
         public int M => Constraints.Count; // number of constraints
         public int N => Variables.Count;   // number of variables
 
+        public object ObjectiveCoefficients { get; internal set; }
+
         public LPModel Clone()
         {
             var clone = new LPModel
