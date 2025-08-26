@@ -1,5 +1,6 @@
 {
   "Version": 1,
+<<<<<<< HEAD
   "WorkspaceRootPath": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\",
   "Documents": [
     {
@@ -107,6 +108,33 @@
     {
       "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\lpr381_solver\\input\\inputparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\input\\inputparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+=======
+  "WorkspaceRootPath": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{35DA0C25-7032-4E4F-AA53-CDB8DC727A03}|Solution Items{35DA0C25-7032-4E4F-AA53-CDB8DC727A03}|C:\\Users\\hlamu\\Source\\Repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{35DA0C25-7032-4E4F-AA53-CDB8DC727A03}|Solution Items{35DA0C25-7032-4E4F-AA53-CDB8DC727A03}|solutionrelative:.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\lpr381_solver\\models\\lpmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\models\\lpmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\lpr381_solver\\models\\constraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\models\\constraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\lpr381_solver\\models\\variable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\models\\variable.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|c:\\users\\hlamu\\source\\repos\\lpr381-linearprogrammingconsoleapp\\lpr381_solver\\lpr381_solver\\sensitivity\\sensitivityanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\sensitivity\\sensitivityanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|c:\\users\\hlamu\\source\\repos\\lpr381-linearprogrammingconsoleapp\\lpr381_solver\\lpr381_solver\\algorithms\\dualitysolver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0563FB5A-4F64-4545-A90C-F728C5F970ED}|LPR381_Solver\\LPR381_Solver.csproj|solutionrelative:lpr381_solver\\algorithms\\dualitysolver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+>>>>>>> main
     }
   ],
   "DocumentGroupContainers": [
@@ -119,6 +147,7 @@
           "SelectedChildIndex": 1,
           "Children": [
             {
+<<<<<<< HEAD
               "$type": "Document",
               "DocumentIndex": 2,
 <<<<<<< Updated upstream
@@ -154,21 +183,46 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-06T04:35:02.927Z"
+=======
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": ".gitignore",
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\.gitignore",
+              "RelativeDocumentMoniker": ".gitignore",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\.gitignore",
+              "RelativeToolTip": ".gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-08-26T01:35:09.095Z",
+              "EditorCaption": ""
+>>>>>>> main
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "DualitySolver.cs",
+<<<<<<< HEAD
               "DocumentMoniker": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\DualitySolver.cs",
               "RelativeDocumentMoniker": "LPR381_Solver\\Algorithms\\DualitySolver.cs",
               "ToolTip": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\DualitySolver.cs",
+=======
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\DualitySolver.cs",
+              "RelativeDocumentMoniker": "LPR381_Solver\\Algorithms\\DualitySolver.cs",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\DualitySolver.cs",
+>>>>>>> main
               "RelativeToolTip": "LPR381_Solver\\Algorithms\\DualitySolver.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-06T04:34:44.53Z"
+              "WhenOpened": "2025-08-26T00:57:47.049Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
+<<<<<<< HEAD
               "DocumentIndex": 6,
               "Title": "KnapsackBranchBound.cs",
               "DocumentMoniker": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\KnapsackBranchBound.cs",
@@ -176,11 +230,22 @@
               "ToolTip": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\KnapsackBranchBound.cs",
               "RelativeToolTip": "LPR381_Solver\\Algorithms\\KnapsackBranchBound.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+=======
+              "DocumentIndex": 4,
+              "Title": "SensitivityAnalyzer.cs",
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Sensitivity\\SensitivityAnalyzer.cs",
+              "RelativeDocumentMoniker": "LPR381_Solver\\Sensitivity\\SensitivityAnalyzer.cs",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Sensitivity\\SensitivityAnalyzer.cs",
+              "RelativeToolTip": "LPR381_Solver\\Sensitivity\\SensitivityAnalyzer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFIAAAAAAAAAAAAAAA==",
+>>>>>>> main
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-06T04:34:37.344Z"
+              "WhenOpened": "2025-08-26T00:55:24.465Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
+<<<<<<< HEAD
               "DocumentIndex": 7,
               "Title": "CuttingPlane.cs",
               "DocumentMoniker": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Algorithms\\CuttingPlane.cs",
@@ -254,12 +319,35 @@
 =======
               "ViewState": "AgIAACUAAAAAAAAAAAAgwAkAAAAJAAAAAAAAAA==",
 >>>>>>> Stashed changes
+=======
+              "DocumentIndex": 3,
+              "Title": "Variable.cs",
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\Variable.cs",
+              "RelativeDocumentMoniker": "LPR381_Solver\\Models\\Variable.cs",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\Variable.cs",
+              "RelativeToolTip": "LPR381_Solver\\Models\\Variable.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-06T04:29:13.054Z",
+              "WhenOpened": "2025-08-06T04:33:08.331Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Constraint.cs",
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\Constraint.cs",
+              "RelativeDocumentMoniker": "LPR381_Solver\\Models\\Constraint.cs",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\Constraint.cs",
+              "RelativeToolTip": "LPR381_Solver\\Models\\Constraint.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAA/wBEAAAAEAAAAAAAAAA==",
+>>>>>>> main
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-06T04:32:53.626Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+<<<<<<< HEAD
               "DocumentIndex": 5,
               "Title": "SensitivityAnalyzer.cs",
               "DocumentMoniker": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Sensitivity\\SensitivityAnalyzer.cs",
@@ -392,9 +480,17 @@
               "DocumentMoniker": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\LPModel.cs",
               "RelativeDocumentMoniker": "LPR381_Solver\\Models\\LPModel.cs",
               "ToolTip": "D:\\Personal\\3rdYear\\LPR381\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\LPModel.cs",
+=======
+              "DocumentIndex": 1,
+              "Title": "LPModel.cs",
+              "DocumentMoniker": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\LPModel.cs",
+              "RelativeDocumentMoniker": "LPR381_Solver\\Models\\LPModel.cs",
+              "ToolTip": "C:\\Users\\hlamu\\source\\repos\\LPR381-LinearProgrammingConsoleApp\\LPR381_Solver\\LPR381_Solver\\Models\\LPModel.cs",
+>>>>>>> main
               "RelativeToolTip": "LPR381_Solver\\Models\\LPModel.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+<<<<<<< HEAD
               "WhenOpened": "2025-08-06T04:32:44.388Z"
             },
             {
@@ -420,6 +516,10 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-06T04:32:12.34Z"
+=======
+              "WhenOpened": "2025-08-06T04:32:44.388Z",
+              "EditorCaption": ""
+>>>>>>> main
             }
           ]
         }
