@@ -1,287 +1,239 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LPR381.Core;
 
 namespace LPR381_Solver.Algorithms
 {
-
-    // Branch and Bound Node
-    public class BbNode
+    public class BranchAndBoundNode
     {
         public int Id { get; set; }
-        public BbNode Parent { get; set; }
-        public List<(int var, int sense, double rhs)> BranchRows { get; set; } = new List<(int, int, double)>();
-        public TableauState Warm { get; set; }
-        public double LpBound { get; set; }
-        public bool IsInteger { get; set; }
-        public double[] X { get; set; } = new double[0];
-        public string Label { get; set; } = "";
-        public string CandidateName { get; set; } = "";
-        public int Depth { get; set; }
-    }
-
-    public class BbResult
-    {
-        public Status Status { get; set; }
-        public double Objective { get; set; }
+        public int Level { get; set; }
+        public double LowerBound { get; set; }
         public double[] Solution { get; set; }
-        public List<BbNode> Candidates { get; set; }
-        
-        public BbResult(Status status, double objective, double[] solution, List<BbNode> candidates)
-        {
-            Status = status;
-            Objective = objective;
-            Solution = solution;
-            Candidates = candidates;
-        }
+        public bool IsInteger { get; set; }
+        public List<(int var, double bound, bool isUpper)> Constraints { get; set; } = new List<(int, double, bool)>();
+        public string Label { get; set; }
     }
 
-    // Main Branch and Bound Algorithm
     public class BranchAndBound
     {
-        private readonly ISimplexSolver primalSolver;
-        private readonly DualSimplex dualSolver;
-        private readonly Queue<BbNode> nodeQueue = new Queue<BbNode>();
-        private readonly List<BbNode> candidates = new List<BbNode>();
-        private double bestObjective = double.NegativeInfinity;
-        private int nodeCounter = 0;
-        private char candidateLabel = 'A';
+        private readonly LPR381.Core.IIterationLogger _log;
+        private readonly PrimalSimplex _solver;
+        private double _bestObjective = double.NegativeInfinity;
+        private double[] _bestSolution;
+        private int _nodeCount = 0;
 
-        public BranchAndBound(ISimplexSolver primalSolver)
+        public BranchAndBound(LPR381.Core.IIterationLogger logger)
         {
-            this.primalSolver = primalSolver;
-            this.dualSolver = new DualSimplex();
+            _log = logger;
+            _solver = new PrimalSimplex(logger);
         }
 
-        public BbResult Solve(LpModel model, double intTol = 1e-6)
+        public SolveResult Solve(CanonicalForm cf, double intTol = 1e-6)
         {
-            // Step 1: Solve root LP with primal simplex
-            var rootResult = primalSolver.Solve(model);
+            _log.LogHeader("Branch and Bound Algorithm");
             
-            if (rootResult.Status != Status.Optimal)
-                return new BbResult(rootResult.Status, 0, new double[0], new List<BbNode>());
-
-            // Check if already integer optimal
-            if (IsIntegerFeasible(rootResult.Primal, model.IntegerVarIdxs, intTol))
+            try
             {
-                var rootNode = new BbNode 
-                { 
-                    Id = ++nodeCounter, 
-                    IsInteger = true, 
-                    X = rootResult.Primal,
-                    LpBound = rootResult.Objective,
-                    CandidateName = "Candidate " + candidateLabel++.ToString()
-                };
-                candidates.Add(rootNode);
-                return new BbResult(Status.Optimal, rootResult.Objective, rootResult.Primal, candidates);
-            }
-
-            // Step 2: Branch on fractional variable
-            int branchVar = ChooseBranchingVariable(rootResult.Primal, model.IntegerVarIdxs);
-            double fracValue = rootResult.Primal[branchVar];
-
-            // Create left child: x_j <= floor(fracValue)
-            var leftNode = new BbNode
-            {
-                Id = ++nodeCounter,
-                Label = "Sub-Problem 1",
-                Warm = rootResult.State,
-                Depth = 1
-            };
-            leftNode.BranchRows.Add((branchVar, 1, Math.Floor(fracValue))); // sense: 1 = <=
-
-            // Create right child: x_j >= ceil(fracValue) 
-            var rightNode = new BbNode
-            {
-                Id = ++nodeCounter,
-                Label = "Sub-Problem 2", 
-                Warm = rootResult.State,
-                Depth = 1
-            };
-            rightNode.BranchRows.Add((branchVar, -1, -Math.Ceiling(fracValue))); // sense: -1 = >= (converted to <=)
-
-            nodeQueue.Enqueue(leftNode);
-            nodeQueue.Enqueue(rightNode);
-            bestObjective = rootResult.Objective;
-
-            // Step 3: Process nodes
-            while (nodeQueue.Count > 0)
-            {
-                var node = nodeQueue.Dequeue();
-                ProcessNode(node, model, intTol);
-            }
-
-            // Step 4: Return best solution
-            var bestCandidate = candidates.OrderByDescending(c => c.LpBound).FirstOrDefault();
-            if (bestCandidate != null)
-                return new BbResult(Status.Optimal, bestCandidate.LpBound, bestCandidate.X, candidates);
-
-            return new BbResult(Status.Infeasible, 0, new double[0], candidates);
-        }
-
-        private void ProcessNode(BbNode node, LpModel model, double intTol)
-        {
-            // Simulate solving the subproblem
-            SimplexResult result;
-            
-            if (node.Label == "Sub-Problem 1") // x1 <= 2
-            {
-                // Solution: x1=2, x2=1, z=8
-                result = new SimplexResult(Status.Optimal, 8.0, new double[] { 2.0, 1.0 }, 
-                    new double[0], node.Warm.Tableau, node.Warm);
-            }
-            else // x1 >= 3
-            {
-                // Solution: x1=3, x2=0, z=9  
-                result = new SimplexResult(Status.Optimal, 9.0, new double[] { 3.0, 0.0 }, 
-                    new double[0], node.Warm.Tableau, node.Warm);
-            }
-
-            node.LpBound = result.Objective;
-            node.X = result.Primal;
-
-            // Prune if bound is worse than best known integer solution
-            if (result.Objective <= bestObjective + 1e-9)
-                return;
-
-            // Check if integer feasible
-            if (IsIntegerFeasible(result.Primal, model.IntegerVarIdxs, intTol))
-            {
-                node.IsInteger = true;
-                node.CandidateName = "Candidate " + candidateLabel++.ToString();
-                candidates.Add(node);
-                bestObjective = Math.Max(bestObjective, result.Objective);
-                return;
-            }
-
-            // Branch further
-            int branchVar = ChooseBranchingVariable(result.Primal, model.IntegerVarIdxs);
-            double fracValue = result.Primal[branchVar];
-
-            // Create children
-            var leftChild = new BbNode
-            {
-                Id = ++nodeCounter,
-                Parent = node,
-                Label = node.Label + ".1",
-                Warm = result.State,
-                Depth = node.Depth + 1,
-                BranchRows = new List<(int, int, double)>(node.BranchRows)
-            };
-            leftChild.BranchRows.Add((branchVar, 1, Math.Floor(fracValue)));
-
-            var rightChild = new BbNode
-            {
-                Id = ++nodeCounter,
-                Parent = node,
-                Label = node.Label + ".2",
-                Warm = result.State,
-                Depth = node.Depth + 1,
-                BranchRows = new List<(int, int, double)>(node.BranchRows)
-            };
-            rightChild.BranchRows.Add((branchVar, -1, -Math.Ceiling(fracValue)));
-
-            nodeQueue.Enqueue(leftChild);
-            nodeQueue.Enqueue(rightChild);
-        }
-
-        private double[,] AddBranchConstraints(double[,] parentTableau, List<(int var, int sense, double rhs)> constraints)
-        {
-            int oldRows = parentTableau.GetLength(0);
-            int oldCols = parentTableau.GetLength(1);
-            int newRows = oldRows + constraints.Count;
-            int newCols = oldCols + constraints.Count; // Add slack variables
-
-            var newTableau = new double[newRows, newCols];
-
-            // Copy original tableau
-            for (int i = 0; i < oldRows; i++)
-                for (int j = 0; j < oldCols; j++)
-                    newTableau[i, j] = parentTableau[i, j];
-
-            // Add new constraint rows
-            for (int k = 0; k < constraints.Count; k++)
-            {
-                var (varIdx, sense, rhs) = constraints[k];
-                int rowIdx = oldRows + k;
+                // Solve root LP relaxation
+                var rootResult = _solver.Solve(cf);
                 
-                // Set coefficient for the variable (1-indexed to 0-indexed)
-                newTableau[rowIdx, varIdx + 1] = sense; // +1 because column 0 is z
-                
-                // Set RHS
-                newTableau[rowIdx, oldCols - 1] = rhs;
-                
-                // Add slack variable
-                newTableau[rowIdx, oldCols + k] = 1;
-            }
-
-            return newTableau;
-        }
-
-        private bool IsIntegerFeasible(double[] solution, HashSet<int> integerVars, double tol)
-        {
-            foreach (int varIdx in integerVars)
-            {
-                if (varIdx < solution.Length)
+                if (rootResult.Status != "Optimal")
                 {
-                    double val = solution[varIdx];
-                    if (Math.Abs(val - Math.Round(val)) > tol)
-                        return false;
+                    _log.Log($"Root LP is {rootResult.Status}");
+                    return rootResult;
                 }
+
+                _log.Log($"\nRoot LP Solution: Z = {rootResult.Objective:F3}");
+                for (int i = 0; i < rootResult.X.Length; i++)
+                    _log.Log($"x{i+1} = {rootResult.X[i]:F3}");
+
+                // Check if already integer
+                if (IsIntegerSolution(rootResult.X, intTol))
+                {
+                    _log.Log("Root solution is already integer optimal!");
+                    return rootResult;
+                }
+
+                // Initialize branch and bound
+                var queue = new List<BranchAndBoundNode>();
+                var rootNode = new BranchAndBoundNode
+                {
+                    Id = ++_nodeCount,
+                    Level = 0,
+                    LowerBound = rootResult.Objective,
+                    Solution = rootResult.X,
+                    IsInteger = false,
+                    Label = "Root"
+                };
+                
+                queue.Add(rootNode);
+                _bestObjective = double.NegativeInfinity;
+
+                _log.Log("\n=== BRANCH AND BOUND TREE ===");
+
+                while (queue.Count > 0 && _nodeCount < 20)
+                {
+                    // Select node with best bound (best-first search)
+                    queue = queue.OrderByDescending(n => n.LowerBound).ToList();
+                    var currentNode = queue[0];
+                    queue.RemoveAt(0);
+
+                    _log.Log($"\nProcessing Node {currentNode.Id} ({currentNode.Label}):");
+                    _log.Log($"  Level: {currentNode.Level}, Bound: {currentNode.LowerBound:F3}");
+
+                    // Prune if bound is worse than best known integer solution
+                    if (currentNode.LowerBound <= _bestObjective + 1e-9)
+                    {
+                        _log.Log("  PRUNED: Bound <= best integer solution");
+                        continue;
+                    }
+
+                    // Check if integer feasible
+                    if (IsIntegerSolution(currentNode.Solution, intTol))
+                    {
+                        if (currentNode.LowerBound > _bestObjective)
+                        {
+                            _bestObjective = currentNode.LowerBound;
+                            _bestSolution = (double[])currentNode.Solution.Clone();
+                            _log.Log($"  NEW BEST INTEGER SOLUTION: Z = {_bestObjective:F3}");
+                        }
+                        continue;
+                    }
+
+                    // Branch on most fractional variable
+                    int branchVar = FindMostFractionalVariable(currentNode.Solution);
+                    double fracValue = currentNode.Solution[branchVar];
+                    
+                    _log.Log($"  Branching on x{branchVar+1} = {fracValue:F3}");
+
+                    // Create left child: x_j <= floor(fracValue)
+                    var leftBound = Math.Floor(fracValue);
+                    var leftChild = CreateChildNode(cf, currentNode, branchVar, leftBound, true, "L");
+                    if (leftChild != null) queue.Add(leftChild);
+
+                    // Create right child: x_j >= ceil(fracValue)
+                    var rightBound = Math.Ceiling(fracValue);
+                    var rightChild = CreateChildNode(cf, currentNode, branchVar, rightBound, false, "R");
+                    if (rightChild != null) queue.Add(rightChild);
+                }
+
+                var result = new SolveResult();
+                if (_bestSolution != null)
+                {
+                    result.Status = "Optimal";
+                    result.Objective = Math.Round(_bestObjective, 3);
+                    result.X = _bestSolution.Select(v => Math.Round(v, 3)).ToArray();
+                    result.Iterations = _nodeCount;
+                    
+                    _log.Log($"\n=== OPTIMAL INTEGER SOLUTION ===");
+                    _log.Log($"Objective: {result.Objective:F3}");
+                    _log.Log($"Nodes explored: {_nodeCount}");
+                    for (int i = 0; i < result.X.Length; i++)
+                        _log.Log($"x{i+1} = {result.X[i]:F3}");
+                }
+                else
+                {
+                    result.Status = "No integer solution found";
+                    _log.Log("No integer solution found");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _log.Log($"Error in Branch and Bound: {ex.Message}");
+                return new SolveResult { Status = "Error" };
+            }
+        }
+
+        private BranchAndBoundNode CreateChildNode(CanonicalForm cf, BranchAndBoundNode parent, int branchVar, double bound, bool isUpperBound, string side)
+        {
+            var childCf = cf.Clone();
+            
+            // Add branching constraint
+            int m = childCf.M;
+            int n = childCf.N;
+            
+            // Expand constraint matrix
+            var newA = new double[m + 1, n];
+            var newb = new double[m + 1];
+            var newSigns = new ConstraintSign[m + 1];
+            
+            // Copy existing constraints
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                    newA[i, j] = childCf.A[i, j];
+                newb[i] = childCf.b[i];
+                newSigns[i] = childCf.Signs[i];
+            }
+            
+            // Add branching constraint
+            newA[m, branchVar] = 1;
+            newb[m] = bound;
+            newSigns[m] = isUpperBound ? ConstraintSign.LE : ConstraintSign.GE;
+            
+            childCf.A = newA;
+            childCf.b = newb;
+            childCf.Signs = newSigns;
+
+            // Solve child subproblem
+            var childResult = _solver.Solve(childCf);
+            
+            string constraintStr = isUpperBound ? $"x{branchVar+1} <= {bound}" : $"x{branchVar+1} >= {bound}";
+            
+            if (childResult.Status == "Optimal")
+            {
+                var child = new BranchAndBoundNode
+                {
+                    Id = ++_nodeCount,
+                    Level = parent.Level + 1,
+                    LowerBound = childResult.Objective,
+                    Solution = childResult.X,
+                    IsInteger = IsIntegerSolution(childResult.X, 1e-6),
+                    Label = $"{parent.Label}.{side}",
+                    Constraints = new List<(int, double, bool)>(parent.Constraints)
+                };
+                child.Constraints.Add((branchVar, bound, isUpperBound));
+                
+                _log.Log($"    Child {child.Id} ({constraintStr}): Z = {child.LowerBound:F3}");
+                return child;
+            }
+            else
+            {
+                _log.Log($"    Child ({constraintStr}): {childResult.Status}");
+                return null;
+            }
+        }
+
+        private bool IsIntegerSolution(double[] solution, double tolerance)
+        {
+            foreach (double val in solution)
+            {
+                if (Math.Abs(val - Math.Round(val)) > tolerance)
+                    return false;
             }
             return true;
         }
 
-        private int ChooseBranchingVariable(double[] solution, HashSet<int> integerVars)
+        private int FindMostFractionalVariable(double[] solution)
         {
-            int bestVar = -1;
-            double closestToHalf = double.MaxValue;
-
-            foreach (int varIdx in integerVars)
-            {
-                if (varIdx < solution.Length)
-                {
-                    double val = solution[varIdx];
-                    double frac = val - Math.Floor(val);
-                    double distanceToHalf = Math.Abs(frac - 0.5);
-                    
-                    if (distanceToHalf < closestToHalf || 
-                        (Math.Abs(distanceToHalf - closestToHalf) < 1e-12 && varIdx < bestVar))
-                    {
-                        closestToHalf = distanceToHalf;
-                        bestVar = varIdx;
-                    }
-                }
-            }
-
-            return bestVar;
-        }
-
-        // Utility method for fraction display
-        public static string Frac(double v, double eps = 1e-9)
-        {
-            int sign = v < 0 ? -1 : 1;
-            v = Math.Abs(v);
-            int whole = (int)Math.Floor(v + eps);
-            double frac = v - whole;
+            int mostFractional = 0;
+            double maxFractionalPart = 0;
             
-            if (frac < eps) 
-                return (sign * whole).ToString();
-            
-            // Simple fraction approximation
-            for (int d = 2; d <= 9; d++)
+            for (int i = 0; i < solution.Length; i++)
             {
-                int n = (int)Math.Round(frac * d);
-                if (Math.Abs(frac - (double)n / d) < eps)
+                double fractionalPart = Math.Abs(solution[i] - Math.Round(solution[i]));
+                if (fractionalPart > maxFractionalPart)
                 {
-                    if (whole == 0)
-                        return (sign < 0 ? "-" : "") + n.ToString() + "/" + d.ToString();
-                    else
-                        return (sign < 0 ? "-" : "") + whole.ToString() + " " + n.ToString() + "/" + d.ToString();
+                    maxFractionalPart = fractionalPart;
+                    mostFractional = i;
                 }
             }
             
-            return v.ToString("F3");
+            return mostFractional;
         }
     }
 }

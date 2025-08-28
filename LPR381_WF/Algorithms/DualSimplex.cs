@@ -1,179 +1,187 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using LPR381.Core;
 
 namespace LPR381_Solver.Algorithms
 {
-    // Core data structures for Dual Simplex
-    public class IterationSnapshot
+    public class DualSimplex
     {
-        public int Iter { get; set; }
-        public string Label { get; set; }
-        public double[,] Tableau { get; set; }
-        public int? EnteringCol { get; set; }
-        public int? LeavingRow { get; set; }
-        public int? PivotRow { get; set; }
-        public int? PivotCol { get; set; }
-        public double[] Theta { get; set; }
-        public double Objective { get; set; }
-        
-        public IterationSnapshot(int iter, string label, double[,] tableau, int? enteringCol, int? leavingRow, int? pivotRow, int? pivotCol, double[] theta, double objective)
+        private readonly LPR381.Core.IIterationLogger _log;
+        private readonly double _eps;
+
+        public DualSimplex(LPR381.Core.IIterationLogger logger, double eps = 1e-9)
         {
-            Iter = iter;
-            Label = label;
-            Tableau = tableau;
-            EnteringCol = enteringCol;
-            LeavingRow = leavingRow;
-            PivotRow = pivotRow;
-            PivotCol = pivotCol;
-            Theta = theta;
-            Objective = objective;
+            _log = logger;
+            _eps = eps;
         }
-    }
 
-    public interface ISimplexSolver
-    {
-        event Action<IterationSnapshot> OnIter;
-        SimplexResult Solve(LpModel model, TableauState warmStart = null, double tol = 1e-9);
-    }
-
-    public class SimplexResult
-    {
-        public Status Status { get; set; }
-        public double Objective { get; set; }
-        public double[] Primal { get; set; }
-        public double[] ReducedCosts { get; set; }
-        public double[,] FinalTableau { get; set; }
-        public TableauState State { get; set; }
-        
-        public SimplexResult(Status status, double objective, double[] primal, double[] reducedCosts, double[,] finalTableau, TableauState state)
+        public SolveResult Solve(CanonicalForm cf)
         {
-            Status = status;
-            Objective = objective;
-            Primal = primal;
-            ReducedCosts = reducedCosts;
-            FinalTableau = finalTableau;
-            State = state;
-        }
-    }
-
-    public enum Status { Optimal, Infeasible, Unbounded }
-
-    public class LpModel
-    {
-        public double[,] A { get; set; }
-        public double[] b { get; set; }
-        public double[] c { get; set; }
-        public int nVars { get; set; }
-        public HashSet<int> IntegerVarIdxs { get; set; }
-        
-        public LpModel(double[,] a, double[] b, double[] c, int nVars, HashSet<int> integerVarIdxs)
-        {
-            A = a;
-            this.b = b;
-            this.c = c;
-            this.nVars = nVars;
-            IntegerVarIdxs = integerVarIdxs;
-        }
-    }
-
-    public class TableauState
-    {
-        public double[,] Tableau { get; set; }
-        public int[] Basis { get; set; }
-        
-        public TableauState(double[,] tableau, int[] basis)
-        {
-            Tableau = tableau;
-            Basis = basis;
-        }
-    }
-
-    // Dual Simplex Implementation
-    public sealed class DualSimplex : ISimplexSolver
-    {
-        public event Action<IterationSnapshot> OnIter;
-
-        public SimplexResult Solve(LpModel model, TableauState warmStart = null, double tol = 1e-9)
-        {
-            if (warmStart == null)
-                throw new ArgumentException("DualSimplex requires warm start");
-
-            var T = (double[,])warmStart.Tableau.Clone();
-            int rows = T.GetLength(0), cols = T.GetLength(1);
-            int iter = 0;
-
-            while (true)
+            _log.LogHeader("Dual Simplex Algorithm");
+            var res = new SolveResult();
+            
+            try
             {
-                // Find leaving row (most negative RHS)
-                int rhsCol = cols - 1;
-                int leavingRow = -1;
-                double minRhs = 0;
+                BuildTableau(cf, out var T, out var basis, out var varNames, out int objRow, out int rhsCol);
+                PrintTableau(T, objRow, rhsCol, varNames, basis, 0);
 
-                for (int i = 1; i < rows; i++)
+                int it = 0;
+                while (it < 100)
                 {
-                    if (T[i, rhsCol] < minRhs - tol)
+                    it++;
+                    
+                    // Find leaving variable (most negative RHS)
+                    int leavingRow = FindLeavingVariable(T, rhsCol);
+                    if (leavingRow == -1)
                     {
-                        minRhs = T[i, rhsCol];
-                        leavingRow = i;
+                        // All RHS >= 0, solution is feasible and optimal
+                        break;
                     }
-                }
 
-                if (leavingRow == -1)
-                {
-                    // Feasible - optimal
-                    var primal = ExtractPrimal(T, model.nVars);
-                    return new SimplexResult(Status.Optimal, T[0, rhsCol], primal, 
-                        new double[0], T, warmStart);
-                }
-
-                // Find entering column (min ratio test)
-                int enteringCol = -1;
-                double bestRatio = double.PositiveInfinity;
-
-                for (int j = 1; j < cols - 1; j++)
-                {
-                    double a = T[leavingRow, j];
-                    if (a < -tol)
+                    // Find entering variable (dual ratio test)
+                    int enteringCol = FindEnteringVariable(T, leavingRow, objRow);
+                    if (enteringCol == -1)
                     {
-                        double reducedCost = T[0, j];
-                        double ratio = reducedCost / Math.Abs(a);
-                        
-                        if (ratio < bestRatio - 1e-12 || 
-                            (Math.Abs(ratio - bestRatio) < 1e-12 && j < enteringCol))
-                        {
-                            bestRatio = ratio;
-                            enteringCol = j;
-                        }
+                        res.Status = "Infeasible";
+                        _log.Log("Problem is infeasible (no entering variable found)");
+                        return res;
                     }
+
+                    _log.Log($"Iteration {it}: Leave={varNames[basis[leavingRow]]}, Enter={varNames[enteringCol]}");
+                    
+                    // Perform pivot operation
+                    Pivot(T, leavingRow + 1, enteringCol); // +1 for tableau indexing
+                    basis[leavingRow] = enteringCol;
+                    
+                    PrintTableau(T, objRow, rhsCol, varNames, basis, it);
                 }
 
-                if (enteringCol == -1)
+                res.Status = "Optimal";
+                res.Iterations = it;
+                var x = new double[cf.N];
+                
+                // Extract solution
+                for (int i = 0; i < basis.Length; i++)
                 {
-                    // Infeasible
-                    return new SimplexResult(Status.Infeasible, 0, new double[0], 
-                        new double[0], T, warmStart);
+                    int col = basis[i];
+                    if (col < cf.N) 
+                        x[col] = T[i + 1, rhsCol];
                 }
 
-                // Pivot
-                Pivot(T, leavingRow, enteringCol);
+                double z = T[objRow, rhsCol];
+                if (cf.Sense == ProblemSense.Min) z = -z;
 
-                // Fire iteration event
-                var theta = ComputeTheta(T, enteringCol);
-                if (OnIter != null)
-                    OnIter.Invoke(new IterationSnapshot(++iter, "D-" + iter.ToString(), (double[,])T.Clone(),
-                        enteringCol, leavingRow, leavingRow, enteringCol, theta, T[0, rhsCol]));
+                res.X = x.Select(v => Math.Round(v, 3)).ToArray();
+                res.Objective = Math.Round(z, 3);
+                
+                _log.Log($"\nFinal Solution: Status={res.Status}, Z={res.Objective:F3}");
+                for (int i = 0; i < x.Length; i++) 
+                    _log.Log($"x{i+1} = {res.X[i]:F3}");
+                    
+                return res;
             }
+            catch (Exception ex)
+            {
+                _log.Log($"Error in DualSimplex: {ex.Message}");
+                res.Status = "Error";
+                return res;
+            }
+        }
+
+        private void BuildTableau(CanonicalForm cf, out double[,] T, out int[] basis, out string[] varNames, out int objRow, out int rhsCol)
+        {
+            int m = cf.M, n = cf.N;
+            int slacks = cf.Signs.Count(s => s == ConstraintSign.LE);
+            int totalVars = n + slacks;
+            
+            T = new double[m + 1, totalVars + 1];
+            basis = new int[m];
+            varNames = new string[totalVars];
+            objRow = 0;
+            rhsCol = totalVars;
+            
+            for (int j = 0; j < n; j++) varNames[j] = $"x{j+1}";
+            for (int j = 0; j < slacks; j++) varNames[n + j] = $"s{j+1}";
+            
+            // Objective row (for dual simplex, we need dual feasibility)
+            for (int j = 0; j < n; j++)
+                T[0, j] = cf.Sense == ProblemSense.Max ? -cf.c[j] : cf.c[j];
+            
+            // Constraint rows
+            int slackIdx = 0;
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                    T[i + 1, j] = cf.A[i, j];
+                    
+                if (cf.Signs[i] == ConstraintSign.LE)
+                {
+                    T[i + 1, n + slackIdx] = 1;
+                    basis[i] = n + slackIdx;
+                    slackIdx++;
+                }
+                
+                T[i + 1, rhsCol] = cf.b[i];
+            }
+        }
+
+        private int FindLeavingVariable(double[,] T, int rhsCol)
+        {
+            int rows = T.GetLength(0);
+            double mostNegative = 0;
+            int leavingRow = -1;
+            
+            for (int i = 1; i < rows; i++)
+            {
+                if (T[i, rhsCol] < mostNegative - _eps)
+                {
+                    mostNegative = T[i, rhsCol];
+                    leavingRow = i - 1; // Adjust for basis indexing
+                }
+            }
+            
+            return leavingRow;
+        }
+
+        private int FindEnteringVariable(double[,] T, int leavingRow, int objRow)
+        {
+            int cols = T.GetLength(1) - 1; // Exclude RHS column
+            double bestRatio = double.PositiveInfinity;
+            int enteringCol = -1;
+            
+            int pivotRow = leavingRow + 1; // Adjust for tableau indexing
+            
+            for (int j = 0; j < cols; j++)
+            {
+                double a_rj = T[pivotRow, j];
+                if (a_rj < -_eps) // Negative coefficient in leaving row
+                {
+                    double c_j = T[objRow, j]; // Reduced cost
+                    double ratio = Math.Abs(c_j / a_rj);
+                    
+                    if (ratio < bestRatio - _eps)
+                    {
+                        bestRatio = ratio;
+                        enteringCol = j;
+                    }
+                }
+            }
+            
+            return enteringCol;
         }
 
         private void Pivot(double[,] T, int pivotRow, int pivotCol)
         {
-            int rows = T.GetLength(0), cols = T.GetLength(1);
+            int rows = T.GetLength(0);
+            int cols = T.GetLength(1);
+            
             double pivot = T[pivotRow, pivotCol];
-
+            
             // Normalize pivot row
             for (int j = 0; j < cols; j++)
                 T[pivotRow, j] /= pivot;
-
+            
             // Eliminate column
             for (int i = 0; i < rows; i++)
             {
@@ -186,58 +194,34 @@ namespace LPR381_Solver.Algorithms
             }
         }
 
-        private double[] ComputeTheta(double[,] T, int enteringCol)
+        private void PrintTableau(double[,] T, int objRow, int rhsCol, string[] varNames, int[] basis, int iteration)
         {
             int rows = T.GetLength(0);
-            var theta = new double[rows];
-            int rhsCol = T.GetLength(1) - 1;
-
+            int cols = T.GetLength(1);
+            
+            _log.Log($"\nIteration {iteration} Tableau:");
+            
+            // Header
+            string header = "     ";
+            for (int j = 0; j < cols - 1; j++)
+                header += $"{varNames[j],8}";
+            header += "     RHS";
+            _log.Log(header);
+            
+            // Objective row
+            string objStr = "z  : ";
+            for (int j = 0; j < cols; j++)
+                objStr += $"{T[objRow, j],8:F2}";
+            _log.Log(objStr);
+            
+            // Constraint rows
             for (int i = 1; i < rows; i++)
             {
-                if (T[i, enteringCol] > 1e-9)
-                    theta[i] = T[i, rhsCol] / T[i, enteringCol];
-                else
-                    theta[i] = double.PositiveInfinity;
+                string rowStr = $"{varNames[basis[i-1]],3}: ";
+                for (int j = 0; j < cols; j++)
+                    rowStr += $"{T[i, j],8:F2}";
+                _log.Log(rowStr);
             }
-            return theta;
-        }
-
-        private double[] ExtractPrimal(double[,] T, int nVars)
-        {
-            var solution = new double[nVars];
-            int rows = T.GetLength(0), cols = T.GetLength(1);
-            int rhsCol = cols - 1;
-
-            // Find basic variables
-            for (int j = 1; j <= nVars && j < cols - 1; j++)
-            {
-                int basicRow = -1;
-                bool isBasic = true;
-
-                for (int i = 1; i < rows; i++)
-                {
-                    if (Math.Abs(T[i, j] - 1.0) < 1e-9)
-                    {
-                        if (basicRow == -1)
-                            basicRow = i;
-                        else
-                        {
-                            isBasic = false;
-                            break;
-                        }
-                    }
-                    else if (Math.Abs(T[i, j]) > 1e-9)
-                    {
-                        isBasic = false;
-                        break;
-                    }
-                }
-
-                if (isBasic && basicRow != -1)
-                    solution[j - 1] = T[basicRow, rhsCol];
-            }
-
-            return solution;
         }
     }
 }

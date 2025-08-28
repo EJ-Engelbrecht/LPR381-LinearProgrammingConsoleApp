@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -53,7 +54,7 @@ namespace LPR381_Solver.Input
             {
                 if (!string.IsNullOrEmpty(parts[i]))
                 {
-                    double coeff = double.Parse(parts[i]);
+                    double coeff = double.Parse(parts[i], CultureInfo.InvariantCulture);
                     string varName = $"x{i}";
                     model.ObjectiveFunction[varName] = coeff;
                     model.Variables.Add(new Variable(varName, false));
@@ -74,7 +75,7 @@ namespace LPR381_Solver.Input
             {
                 if (!string.IsNullOrEmpty(parts[i]))
                 {
-                    double coeff = double.Parse(parts[i]);
+                    double coeff = double.Parse(parts[i], CultureInfo.InvariantCulture);
                     string varName = $"x{i + 1}";
                     constraint.Coefficients[varName] = coeff;
                 }
@@ -87,7 +88,7 @@ namespace LPR381_Solver.Input
                 constraint.Type = op == "<=" ? ConstraintType.LessEqual :
                                  op == ">=" ? ConstraintType.GreaterEqual : ConstraintType.Equal;
                 
-                constraint.RightHandSide = double.Parse(parts[parts.Length - 1]);
+                constraint.RightHandSide = double.Parse(parts[parts.Length - 1], CultureInfo.InvariantCulture);
             }
 
             model.Constraints.Add(constraint);

@@ -1,132 +1,138 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LPR381.Core;
 
 namespace LPR381_Solver.Algorithms
 {
-    // Local enums and classes for CuttingPlane
-    public enum CuttingConstraintSign { LE, GE, EQ }
-    public enum CuttingProblemSense { Max, Min }
-    public enum CuttingVarType { URS, Plus, Minus, Int, Bin }
-    
-    public class CuttingCanonicalForm
-    {
-        public CuttingProblemSense Sense { get; set; }
-        public double[,] A { get; set; }
-        public double[] b { get; set; }
-        public double[] c { get; set; }
-        public CuttingConstraintSign[] Signs { get; set; }
-        public CuttingVarType[] VariableTypes { get; set; }
-        public string[] VariableNames { get; set; }
-        public int M => A.GetLength(0);
-        public int N => A.GetLength(1);
-        
-        public CuttingCanonicalForm Clone()
-        {
-            var m = M; var n = N;
-            var A2 = new double[m, n];
-            Array.Copy(A, A2, A.Length);
-            return new CuttingCanonicalForm {
-                Sense = Sense,
-                A = A2,
-                b = (double[])b.Clone(),
-                c = (double[])c.Clone(),
-                Signs = (CuttingConstraintSign[])Signs.Clone(),
-                VariableTypes = (CuttingVarType[])VariableTypes.Clone(),
-                VariableNames = VariableNames == null ? null : (string[])VariableNames.Clone()
-            };
-        }
-    }
-    
-    public class CuttingSolveResult
-    {
-        public string Status { get; set; } = "Unknown";
-        public double Objective { get; set; }
-        public double[] X { get; set; } = new double[0];
-        public int Iterations { get; set; } = 0;
-    }
-    
-    public interface ICuttingIterationLogger
-    {
-        void Log(string message);
-        void LogHeader(string title);
-    }
-
     public class CuttingPlane
     {
-        private readonly RevisedSimplex _lpSolver;
-        private readonly ICuttingIterationLogger _log;
+        private readonly LPR381.Core.IIterationLogger _log;
+        private readonly PrimalSimplex _solver;
 
-        public CuttingPlane(RevisedSimplex lpSolver, ICuttingIterationLogger logger)
+        public CuttingPlane(LPR381.Core.IIterationLogger logger)
         {
-            _lpSolver = lpSolver;
             _log = logger;
+            _solver = new PrimalSimplex(logger);
         }
 
-        public CuttingSolveResult Solve(CuttingCanonicalForm cf)
+        public SolveResult Solve(CanonicalForm cf, double intTol = 1e-6)
         {
-            _log.LogHeader("Cutting Plane (Gomory)");
-
-            var intMask = cf.VariableTypes.Select(t => t == CuttingVarType.Int || t == CuttingVarType.Bin).ToArray();
-            var current = cf.Clone();
-
-            for (int iter = 1; iter <= 50; iter++)
+            _log.LogHeader("Cutting Plane (Gomory) Algorithm");
+            
+            try
             {
-                // Placeholder - would normally solve LP relaxation
-                var lp = new CuttingSolveResult { Status = "Optimal", X = new double[cf.N] };
-                
-                if (lp.Status != "Optimal")
-                {
-                    _log.Log($"LP status: {lp.Status}. Abort.");
-                    return lp;
-                }
+                var current = cf.Clone();
+                int cutCount = 0;
+                const int maxCuts = 20;
 
-                int fracIndex = -1;
-                for (int j = 0; j < current.N; j++)
+                for (int iter = 1; iter <= maxCuts; iter++)
                 {
-                    if (intMask[j])
+                    _log.Log($"\n=== ITERATION {iter} ===");
+                    
+                    // Solve current LP relaxation
+                    var lpResult = _solver.Solve(current);
+                    
+                    if (lpResult.Status != "Optimal")
                     {
-                        var frac = Math.Abs(lp.X[j] - Math.Round(lp.X[j]));
-                        if (frac > 1e-6) { fracIndex = j; break; }
+                        _log.Log($"LP relaxation is {lpResult.Status}");
+                        return lpResult;
                     }
+
+                    _log.Log($"LP Solution: Z = {lpResult.Objective:F3}");
+                    for (int i = 0; i < lpResult.X.Length; i++)
+                        _log.Log($"x{i+1} = {lpResult.X[i]:F3}");
+
+                    // Check if solution is integer
+                    int fracVar = FindMostFractionalVariable(lpResult.X, intTol);
+                    if (fracVar == -1)
+                    {
+                        _log.Log("\nAll variables are integer - optimal solution found!");
+                        lpResult.Status = "Optimal (Integer)";
+                        lpResult.Iterations = cutCount;
+                        return lpResult;
+                    }
+
+                    double fracValue = lpResult.X[fracVar];
+                    double fractionalPart = fracValue - Math.Floor(fracValue);
+                    
+                    _log.Log($"\nMost fractional variable: x{fracVar+1} = {fracValue:F3}");
+                    _log.Log($"Fractional part: {fractionalPart:F3}");
+
+                    // Generate Gomory cut: x_j <= floor(fracValue)
+                    double cutRhs = Math.Floor(fracValue);
+                    _log.Log($"Adding Gomory cut: x{fracVar+1} <= {cutRhs}");
+
+                    // Add cut to problem
+                    current = AddCut(current, fracVar, cutRhs);
+                    cutCount++;
                 }
-                if (fracIndex == -1)
-                {
-                    lp.Status = "Optimal (Integer)";
-                    _log.Log($"All integers integral after {iter-1} cuts. Z = {lp.Objective:0.###}");
-                    return lp;
-                }
 
-                double rhs = Math.Floor(lp.X[fracIndex]);
-                _log.Log($"Cut {iter}: x{fracIndex+1} <= {rhs} (from fractional {lp.X[fracIndex]:0.###})");
-
-                var A2 = new double[current.M + 1, current.N];
-                for (int i = 0; i < current.M; i++)
-                    for (int j = 0; j < current.N; j++)
-                        A2[i, j] = current.A[i, j];
-                A2[current.M, fracIndex] = 1.0;
-
-                var b2 = new double[current.M + 1];
-                Array.Copy(current.b, b2, current.M);
-                b2[current.M] = rhs;
-
-                var signs2 = new CuttingConstraintSign[current.M + 1];
-                Array.Copy(current.Signs, signs2, current.M);
-                signs2[current.M] = CuttingConstraintSign.LE;
-
-                current = new CuttingCanonicalForm
-                {
-                    Sense = cf.Sense,
-                    A = A2,
-                    b = b2,
-                    c = cf.c.ToArray(),
-                    Signs = signs2,
-                    VariableTypes = cf.VariableTypes.ToArray(),
-                    VariableNames = cf.VariableNames?.ToArray()
-                };
+                _log.Log($"\nReached maximum number of cuts ({maxCuts})");
+                var finalResult = _solver.Solve(current);
+                finalResult.Status = "Cut limit reached";
+                finalResult.Iterations = cutCount;
+                return finalResult;
             }
+            catch (Exception ex)
+            {
+                _log.Log($"Error in Cutting Plane: {ex.Message}");
+                return new SolveResult { Status = "Error" };
+            }
+        }
 
-            return new CuttingSolveResult { Status = "CutLimit" };
+        private int FindMostFractionalVariable(double[] solution, double tolerance)
+        {
+            int mostFractional = -1;
+            double maxFractionalPart = 0;
+            
+            for (int i = 0; i < solution.Length; i++)
+            {
+                double fractionalPart = Math.Abs(solution[i] - Math.Round(solution[i]));
+                if (fractionalPart > tolerance && fractionalPart > maxFractionalPart)
+                {
+                    maxFractionalPart = fractionalPart;
+                    mostFractional = i;
+                }
+            }
+            
+            return mostFractional;
+        }
+
+        private CanonicalForm AddCut(CanonicalForm cf, int cutVar, double cutRhs)
+        {
+            int m = cf.M;
+            int n = cf.N;
+            
+            // Create new constraint matrix with one additional row
+            var newA = new double[m + 1, n];
+            var newb = new double[m + 1];
+            var newSigns = new ConstraintSign[m + 1];
+            
+            // Copy existing constraints
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                    newA[i, j] = cf.A[i, j];
+                newb[i] = cf.b[i];
+                newSigns[i] = cf.Signs[i];
+            }
+            
+            // Add Gomory cut: x_cutVar <= cutRhs
+            newA[m, cutVar] = 1.0;
+            newb[m] = cutRhs;
+            newSigns[m] = ConstraintSign.LE;
+            
+            return new CanonicalForm
+            {
+                Sense = cf.Sense,
+                A = newA,
+                b = newb,
+                c = (double[])cf.c.Clone(),
+                Signs = newSigns,
+                VariableTypes = (VarType[])cf.VariableTypes.Clone(),
+                VariableNames = cf.VariableNames?.ToArray()
+            };
         }
     }
 }

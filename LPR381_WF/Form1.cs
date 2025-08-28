@@ -72,6 +72,15 @@ namespace LPR381_WF
 
         private void InitializeComboBox()
         {
+            cbxAlgo.Items.Clear();
+            cbxAlgo.Items.AddRange(new string[] {
+                "Primal Simplex",
+                "Revised Primal Simplex", 
+                "Dual Simplex",
+                "Branch and Bound Simplex",
+                "Cutting Plane",
+                "Branch and Bound Knapsack"
+            });
             cbxAlgo.SelectedIndex = 0;
         }
 
@@ -124,25 +133,43 @@ namespace LPR381_WF
                         break;
 
                     case "Revised Primal Simplex":
-                        logger.Log("=== Revised Primal Simplex Algorithm ===");
-                        logger.Log("Displaying Product Form and Price Out iterations...");
-                        logger.Log("Algorithm implementation in progress...");
+                        pgbShow.Value = 20;
+                        var revisedSimplex = new LPR381_Solver.Algorithms.RevisedSimplex(logger);
+                        pgbShow.Value = 40;
+                        result = revisedSimplex.Solve(currentCanonicalForm);
                         pgbShow.Value = 90;
                         break;
 
                     case "Branch and Bound Simplex":
-                        logger.Log("=== Branch and Bound Simplex Algorithm ===");
-                        logger.Log("Creating sub-problems with backtracking...");
+                        pgbShow.Value = 20;
+                        var branchBound = new LPR381_Solver.Algorithms.BranchAndBound(logger);
+                        pgbShow.Value = 40;
+                        result = branchBound.Solve(currentCanonicalForm);
+                        pgbShow.Value = 90;
                         break;
 
                     case "Cutting Plane":
-                        logger.Log("=== Cutting Plane Algorithm ===");
-                        logger.Log("Displaying Product Form and Price Out iterations...");
+                        pgbShow.Value = 20;
+                        var cuttingPlane = new LPR381_Solver.Algorithms.CuttingPlane(logger);
+                        pgbShow.Value = 40;
+                        result = cuttingPlane.Solve(currentCanonicalForm);
+                        pgbShow.Value = 90;
                         break;
 
                     case "Branch and Bound Knapsack":
-                        logger.Log("=== Branch and Bound Knapsack Algorithm ===");
-                        logger.Log("Creating sub-problems with backtracking for knapsack...");
+                        pgbShow.Value = 20;
+                        var knapsackBB = new LPR381_Solver.Algorithms.KnapsackBranchBound(logger);
+                        pgbShow.Value = 40;
+                        result = knapsackBB.Solve(currentCanonicalForm);
+                        pgbShow.Value = 90;
+                        break;
+
+                    case "Dual Simplex":
+                        pgbShow.Value = 20;
+                        var dualSimplex = new LPR381_Solver.Algorithms.DualSimplex(logger);
+                        pgbShow.Value = 40;
+                        result = dualSimplex.Solve(currentCanonicalForm);
+                        pgbShow.Value = 90;
                         break;
 
                     default:
