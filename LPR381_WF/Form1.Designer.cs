@@ -50,7 +50,7 @@ namespace LPR381_WF
             // 
             // btnSolve
             // 
-            this.btnSolve.Location = new System.Drawing.Point(125, 409);
+            this.btnSolve.Location = new System.Drawing.Point(135, 396);
             this.btnSolve.Name = "btnSolve";
             this.btnSolve.Size = new System.Drawing.Size(82, 27);
             this.btnSolve.TabIndex = 0;
@@ -60,7 +60,7 @@ namespace LPR381_WF
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(213, 409);
+            this.btnClear.Location = new System.Drawing.Point(236, 396);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(80, 27);
             this.btnClear.TabIndex = 1;
@@ -85,7 +85,7 @@ namespace LPR381_WF
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(655, 411);
+            this.btnExit.Location = new System.Drawing.Point(751, 396);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(132, 25);
             this.btnExit.TabIndex = 4;
@@ -97,7 +97,7 @@ namespace LPR381_WF
             // 
             this.rtbOutput.Location = new System.Drawing.Point(27, 69);
             this.rtbOutput.Name = "rtbOutput";
-            this.rtbOutput.Size = new System.Drawing.Size(760, 311);
+            this.rtbOutput.Size = new System.Drawing.Size(856, 311);
             this.rtbOutput.TabIndex = 5;
             this.rtbOutput.Text = "";
             // 
@@ -112,7 +112,7 @@ namespace LPR381_WF
             // 
             // btnTextFile
             // 
-            this.btnTextFile.Location = new System.Drawing.Point(37, 409);
+            this.btnTextFile.Location = new System.Drawing.Point(30, 396);
             this.btnTextFile.Name = "btnTextFile";
             this.btnTextFile.Size = new System.Drawing.Size(82, 27);
             this.btnTextFile.TabIndex = 7;
@@ -122,7 +122,7 @@ namespace LPR381_WF
             // 
             // btnSensitivity
             // 
-            this.btnSensitivity.Location = new System.Drawing.Point(299, 409);
+            this.btnSensitivity.Location = new System.Drawing.Point(333, 396);
             this.btnSensitivity.Name = "btnSensitivity";
             this.btnSensitivity.Size = new System.Drawing.Size(100, 27);
             this.btnSensitivity.TabIndex = 8;
@@ -132,7 +132,7 @@ namespace LPR381_WF
             // 
             // btnExport
             // 
-            this.btnExport.Location = new System.Drawing.Point(483, 409);
+            this.btnExport.Location = new System.Drawing.Point(553, 396);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(80, 27);
             this.btnExport.TabIndex = 9;
@@ -144,13 +144,13 @@ namespace LPR381_WF
             // 
             this.pgbShow.Location = new System.Drawing.Point(27, 48);
             this.pgbShow.Name = "pgbShow";
-            this.pgbShow.Size = new System.Drawing.Size(760, 15);
+            this.pgbShow.Size = new System.Drawing.Size(856, 15);
             this.pgbShow.TabIndex = 10;
             this.pgbShow.Visible = false;
             // 
             // btnClearFile
             // 
-            this.btnClearFile.Location = new System.Drawing.Point(569, 409);
+            this.btnClearFile.Location = new System.Drawing.Point(651, 396);
             this.btnClearFile.Name = "btnClearFile";
             this.btnClearFile.Size = new System.Drawing.Size(80, 27);
             this.btnClearFile.TabIndex = 11;
@@ -174,7 +174,7 @@ namespace LPR381_WF
             "Duality Analysis"});
             this.cbxSensitivity.Location = new System.Drawing.Point(400, 16);
             this.cbxSensitivity.Name = "cbxSensitivity";
-            this.cbxSensitivity.Size = new System.Drawing.Size(163, 21);
+            this.cbxSensitivity.Size = new System.Drawing.Size(192, 21);
             this.cbxSensitivity.TabIndex = 12;
             // 
             // lblSensitivity
@@ -189,7 +189,7 @@ namespace LPR381_WF
             // lblNL
             // 
             this.lblNL.AutoSize = true;
-            this.lblNL.Location = new System.Drawing.Point(588, 22);
+            this.lblNL.Location = new System.Drawing.Point(622, 19);
             this.lblNL.Name = "lblNL";
             this.lblNL.Size = new System.Drawing.Size(59, 13);
             this.lblNL.TabIndex = 14;
@@ -197,17 +197,17 @@ namespace LPR381_WF
             // 
             // txbNL
             // 
-            this.txbNL.Location = new System.Drawing.Point(653, 15);
+            this.txbNL.Location = new System.Drawing.Point(691, 17);
             this.txbNL.Name = "txbNL";
-            this.txbNL.Size = new System.Drawing.Size(134, 20);
+            this.txbNL.Size = new System.Drawing.Size(192, 20);
             this.txbNL.TabIndex = 15;
             this.txbNL.TextChanged += new System.EventHandler(this.txbNL_TextChanged);
             // 
             // btnNL
             // 
-            this.btnNL.Location = new System.Drawing.Point(400, 409);
+            this.btnNL.Location = new System.Drawing.Point(449, 396);
             this.btnNL.Name = "btnNL";
-            this.btnNL.Size = new System.Drawing.Size(86, 27);
+            this.btnNL.Size = new System.Drawing.Size(80, 27);
             this.btnNL.TabIndex = 16;
             this.btnNL.Text = "Non Linear";
             this.btnNL.UseVisualStyleBackColor = true;
@@ -218,7 +218,7 @@ namespace LPR381_WF
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(895, 450);
             this.Controls.Add(this.btnNL);
             this.Controls.Add(this.txbNL);
             this.Controls.Add(this.lblNL);
