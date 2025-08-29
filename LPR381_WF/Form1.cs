@@ -59,7 +59,7 @@ namespace LPR381_WF
             ShowInstructions();
             
             // Preload nonlinear example
-            txbNL.Text = "min[(x³ + 2x + 1)(x - 5.5)] : [0, 5]";
+            txbNL.Text = "(min);(x³+2x+1);(-5,5)";
             ApplyTextBoxStyle(txbNL);
         }
 
