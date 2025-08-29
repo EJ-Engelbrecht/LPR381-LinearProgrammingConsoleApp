@@ -5,217 +5,6 @@ using LPR381.Core;
 
 namespace LPR381_Solver.Algorithms
 {
-<<<<<<< Updated upstream
-    public class BranchAndBoundNode
-    {
-        public int Id { get; set; }
-        public int Level { get; set; }
-        public double LowerBound { get; set; }
-        public double[] Solution { get; set; }
-        public bool IsInteger { get; set; }
-        public List<(int var, double bound, bool isUpper)> Constraints { get; set; } = new List<(int, double, bool)>();
-        public string Label { get; set; }
-    }
-
-    public class BranchAndBound
-    {
-        private readonly LPR381.Core.IIterationLogger _log;
-        private readonly PrimalSimplex _solver;
-        private double _bestObjective = double.NegativeInfinity;
-        private double[] _bestSolution;
-        private int _nodeCount = 0;
-
-        public BranchAndBound(LPR381.Core.IIterationLogger logger)
-        {
-            _log = logger;
-            _solver = new PrimalSimplex(logger);
-        }
-
-        public SolveResult Solve(CanonicalForm cf, double intTol = 1e-6)
-        {
-            _log.LogHeader("Branch and Bound Algorithm");
-            
-            try
-            {
-                // Solve root LP relaxation
-                var rootResult = _solver.Solve(cf);
-                
-                if (rootResult.Status != "Optimal")
-                {
-                    _log.Log($"Root LP is {rootResult.Status}");
-                    return rootResult;
-                }
-
-                _log.Log($"\nRoot LP Solution: Z = {rootResult.Objective:F3}");
-                for (int i = 0; i < rootResult.X.Length; i++)
-                    _log.Log($"x{i+1} = {rootResult.X[i]:F3}");
-
-                // Check if already integer
-                if (IsIntegerSolution(rootResult.X, intTol))
-                {
-                    _log.Log("Root solution is already integer optimal!");
-                    return rootResult;
-                }
-
-                // Initialize branch and bound
-                var queue = new List<BranchAndBoundNode>();
-                var rootNode = new BranchAndBoundNode
-                {
-                    Id = ++_nodeCount,
-                    Level = 0,
-                    LowerBound = rootResult.Objective,
-                    Solution = rootResult.X,
-                    IsInteger = false,
-                    Label = "Root"
-                };
-                
-                queue.Add(rootNode);
-                _bestObjective = double.NegativeInfinity;
-
-                _log.Log("\n=== BRANCH AND BOUND TREE ===");
-
-                while (queue.Count > 0 && _nodeCount < 20)
-                {
-                    // Select node with best bound (best-first search)
-                    queue = queue.OrderByDescending(n => n.LowerBound).ToList();
-                    var currentNode = queue[0];
-                    queue.RemoveAt(0);
-
-                    _log.Log($"\nProcessing Node {currentNode.Id} ({currentNode.Label}):");
-                    _log.Log($"  Level: {currentNode.Level}, Bound: {currentNode.LowerBound:F3}");
-
-                    // Prune if bound is worse than best known integer solution
-                    if (currentNode.LowerBound <= _bestObjective + 1e-9)
-                    {
-                        _log.Log("  PRUNED: Bound <= best integer solution");
-                        continue;
-                    }
-
-                    // Check if integer feasible
-                    if (IsIntegerSolution(currentNode.Solution, intTol))
-                    {
-                        if (currentNode.LowerBound > _bestObjective)
-                        {
-                            _bestObjective = currentNode.LowerBound;
-                            _bestSolution = (double[])currentNode.Solution.Clone();
-                            _log.Log($"  NEW BEST INTEGER SOLUTION: Z = {_bestObjective:F3}");
-                        }
-                        continue;
-                    }
-
-                    // Branch on most fractional variable
-                    int branchVar = FindMostFractionalVariable(currentNode.Solution);
-                    double fracValue = currentNode.Solution[branchVar];
-                    
-                    _log.Log($"  Branching on x{branchVar+1} = {fracValue:F3}");
-
-                    // Create left child: x_j <= floor(fracValue)
-                    var leftBound = Math.Floor(fracValue);
-                    var leftChild = CreateChildNode(cf, currentNode, branchVar, leftBound, true, "L");
-                    if (leftChild != null) queue.Add(leftChild);
-
-                    // Create right child: x_j >= ceil(fracValue)
-                    var rightBound = Math.Ceiling(fracValue);
-                    var rightChild = CreateChildNode(cf, currentNode, branchVar, rightBound, false, "R");
-                    if (rightChild != null) queue.Add(rightChild);
-                }
-
-                var result = new SolveResult();
-                if (_bestSolution != null)
-                {
-                    result.Status = "Optimal";
-                    result.Objective = Math.Round(_bestObjective, 3);
-                    result.X = _bestSolution.Select(v => Math.Round(v, 3)).ToArray();
-                    result.Iterations = _nodeCount;
-                    
-                    _log.Log($"\n=== OPTIMAL INTEGER SOLUTION ===");
-                    _log.Log($"Objective: {result.Objective:F3}");
-                    _log.Log($"Nodes explored: {_nodeCount}");
-                    for (int i = 0; i < result.X.Length; i++)
-                        _log.Log($"x{i+1} = {result.X[i]:F3}");
-                }
-                else
-                {
-                    result.Status = "No integer solution found";
-                    _log.Log("No integer solution found");
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _log.Log($"Error in Branch and Bound: {ex.Message}");
-                return new SolveResult { Status = "Error" };
-            }
-        }
-
-        private BranchAndBoundNode CreateChildNode(CanonicalForm cf, BranchAndBoundNode parent, int branchVar, double bound, bool isUpperBound, string side)
-        {
-            var childCf = cf.Clone();
-            
-            // Add branching constraint
-            int m = childCf.M;
-            int n = childCf.N;
-            
-            // Expand constraint matrix
-            var newA = new double[m + 1, n];
-            var newb = new double[m + 1];
-            var newSigns = new ConstraintSign[m + 1];
-            
-            // Copy existing constraints
-            for (int i = 0; i < m; i++)
-            {
-                for (int j = 0; j < n; j++)
-                    newA[i, j] = childCf.A[i, j];
-                newb[i] = childCf.b[i];
-                newSigns[i] = childCf.Signs[i];
-            }
-            
-            // Add branching constraint
-            newA[m, branchVar] = 1;
-            newb[m] = bound;
-            newSigns[m] = isUpperBound ? ConstraintSign.LE : ConstraintSign.GE;
-            
-            childCf.A = newA;
-            childCf.b = newb;
-            childCf.Signs = newSigns;
-
-            // Solve child subproblem
-            var childResult = _solver.Solve(childCf);
-            
-            string constraintStr = isUpperBound ? $"x{branchVar+1} <= {bound}" : $"x{branchVar+1} >= {bound}";
-            
-            if (childResult.Status == "Optimal")
-            {
-                var child = new BranchAndBoundNode
-                {
-                    Id = ++_nodeCount,
-                    Level = parent.Level + 1,
-                    LowerBound = childResult.Objective,
-                    Solution = childResult.X,
-                    IsInteger = IsIntegerSolution(childResult.X, 1e-6),
-                    Label = $"{parent.Label}.{side}",
-                    Constraints = new List<(int, double, bool)>(parent.Constraints)
-                };
-                child.Constraints.Add((branchVar, bound, isUpperBound));
-                
-                _log.Log($"    Child {child.Id} ({constraintStr}): Z = {child.LowerBound:F3}");
-                return child;
-            }
-            else
-            {
-                _log.Log($"    Child ({constraintStr}): {childResult.Status}");
-                return null;
-            }
-        }
-
-        private bool IsIntegerSolution(double[] solution, double tolerance)
-        {
-            foreach (double val in solution)
-            {
-                if (Math.Abs(val - Math.Round(val)) > tolerance)
-                    return false;
-=======
     internal sealed class BranchAndBound
     {
         private readonly PrimalSimplex _simplex;
@@ -231,13 +20,12 @@ namespace LPR381_Solver.Algorithms
         private const int DEFAULT_MAX_NODES = 5000;
         private const double DEFAULT_TIME_LIMIT_SEC = 5.0;
 
-        // ---------- Sub Problem + Bound structures ----------
         private sealed class SubProblem
         {
-            public List<Bnd> Cons = new List<Bnd>();  // per-variable L/U bounds from branching
-            public int Depth;                          // tree depth (root=0)
-            public string Label = "0";                 // "0", "1.1", "2.1", ...
-            public string BranchNote = "";             // e.g., "x3 ≤ 0 (LEFT)"
+            public List<Bnd> Cons = new List<Bnd>();
+            public int Depth;
+            public string Label = "0";
+            public string BranchNote = "";
             public double Obj;
             public double[] X = Array.Empty<double>();
             public string Status = "";
@@ -245,16 +33,14 @@ namespace LPR381_Solver.Algorithms
 
         private sealed class Bnd
         {
-            public int j;        // variable index (0-based)
-            public double? L;    // lower bound (xj >= L)
-            public double? U;    // upper bound (xj <= U)
+            public int j;
+            public double? L;
+            public double? U;
             public override string ToString() => $"x{j + 1}:{L?.ToString() ?? ""}:{U?.ToString() ?? ""}";
         }
 
-        // ---------- Public solve ----------
         public SolveResult Solve(CanonicalForm baseCf, double intTol = 1e-6)
         {
-            // Treat ALL first N variables as binary decision vars: 0/1
             bool isMax = baseCf.Sense == ProblemSense.Max;
             int decisionCount = baseCf.N;
 
@@ -266,10 +52,9 @@ namespace LPR381_Solver.Algorithms
             int maxNodes = DEFAULT_MAX_NODES;
 
             var stack = new Stack<SubProblem>();
-            // Root sub problem
             stack.Push(new SubProblem { Depth = 0, Label = "0", BranchNote = "" });
 
-            int createdCounter = 0; // for “X.Y” labels (X = creation order, Y = depth)
+            int createdCounter = 0;
             int explored = 0;
             var seen = new HashSet<string>();
 
@@ -283,16 +68,13 @@ namespace LPR381_Solver.Algorithms
                 var sp = stack.Pop();
                 explored++;
 
-                // make a signature from bounds to avoid revisiting equivalent subproblems
                 var sig = string.Join("|", sp.Cons.Select(c => c.ToString()));
                 if (!seen.Add(sig)) continue;
 
-                // ----- announce sub problem + branch at TOP of the simplex output -----
                 _log?.LogHeader($"Sub Problem {sp.Label}");
                 if (!string.IsNullOrWhiteSpace(sp.BranchNote))
                     _log?.Log(sp.BranchNote);
 
-                // Solve LP relaxation for this sub problem (add 0/1 box + branch bounds)
                 var cfChild = BuildChildModel(baseCf, sp.Cons, decisionCount);
                 var res = _simplex.Solve(cfChild);
 
@@ -302,14 +84,12 @@ namespace LPR381_Solver.Algorithms
 
                 _log?.Log($"Status: {sp.Status}, Bound z={sp.Obj:F6}");
 
-                // Infeasible/unbounded → prune
                 if (!string.Equals(res.Status, "Optimal", StringComparison.OrdinalIgnoreCase))
                 {
                     _log?.Log("Pruned: infeasible/unbounded LP");
                     continue;
                 }
 
-                // Bound pruning
                 if (isMax)
                 {
                     if (sp.Obj <= incumbent + TOL)
@@ -327,7 +107,6 @@ namespace LPR381_Solver.Algorithms
                     }
                 }
 
-                // 0/1 integrality on decision vars
                 if (IsIntegral01(sp.X, decisionCount, intTol))
                 {
                     if ((isMax && sp.Obj > incumbent + TOL) ||
@@ -341,7 +120,6 @@ namespace LPR381_Solver.Algorithms
                     continue;
                 }
 
-                // pick a fractional decision var to branch on
                 int j = MostFractionalIndex(sp.X, intTol, decisionCount);
                 if (j == -1)
                 {
@@ -350,8 +128,6 @@ namespace LPR381_Solver.Algorithms
                 }
 
                 double v = sp.X[j];
-                // Create RIGHT then LEFT so LEFT is processed next (depth-first feel)
-                // RIGHT: x_j ≥ 1
                 var right = new SubProblem
                 {
                     Depth = sp.Depth + 1,
@@ -360,7 +136,6 @@ namespace LPR381_Solver.Algorithms
                     Cons = new List<Bnd>(sp.Cons) { new Bnd { j = j, L = 1 } }
                 };
 
-                // LEFT: x_j ≤ 0
                 var left = new SubProblem
                 {
                     Depth = sp.Depth + 1,
@@ -393,7 +168,6 @@ namespace LPR381_Solver.Algorithms
             };
         }
 
-        // ---------- helpers ----------
         private static bool IsIntegral01(double[] x, int decisionCount, double tol = 1e-6)
         {
             if (x == null) return false;
@@ -403,29 +177,10 @@ namespace LPR381_Solver.Algorithms
                 double r = Math.Round(x[j]);
                 if (Math.Abs(x[j] - r) > tol) return false;
                 if (r != 0.0 && r != 1.0) return false;
->>>>>>> Stashed changes
             }
             return true;
         }
 
-<<<<<<< Updated upstream
-        private int FindMostFractionalVariable(double[] solution)
-        {
-            int mostFractional = 0;
-            double maxFractionalPart = 0;
-            
-            for (int i = 0; i < solution.Length; i++)
-            {
-                double fractionalPart = Math.Abs(solution[i] - Math.Round(solution[i]));
-                if (fractionalPart > maxFractionalPart)
-                {
-                    maxFractionalPart = fractionalPart;
-                    mostFractional = i;
-                }
-            }
-            
-            return mostFractional;
-=======
         private static int MostFractionalIndex(double[] x, double tol, int decisionCount)
         {
             if (x == null) return -1;
@@ -448,7 +203,6 @@ namespace LPR381_Solver.Algorithms
             return idx;
         }
 
-        // Add 0≤x≤1 box + branch bounds as <= rows
         private static CanonicalForm BuildChildModel(
             CanonicalForm baseCf,
             List<Bnd> cons,
@@ -461,8 +215,8 @@ namespace LPR381_Solver.Algorithms
             if (decisionCount <= 0 || decisionCount > n)
                 decisionCount = n;
 
-            int addLower = decisionCount; // -x <= 0
-            int addUpper = decisionCount; //  x <= 1
+            int addLower = decisionCount;
+            int addUpper = decisionCount;
             int addBranch = (cons?.Count(c => c.U.HasValue) ?? 0) +
                             (cons?.Count(c => c.L.HasValue) ?? 0);
 
@@ -472,7 +226,6 @@ namespace LPR381_Solver.Algorithms
             var b2 = new double[m0 + add];
             var s2 = new ConstraintSign[m0 + add];
 
-            // copy base
             for (int i = 0; i < m0; i++)
             {
                 for (int j = 0; j < n; j++) A2[i, j] = cf.A[i, j];
@@ -482,7 +235,6 @@ namespace LPR381_Solver.Algorithms
 
             int r = m0;
 
-            // -x <= 0  (x >= 0)
             for (int j = 0; j < decisionCount; j++)
             {
                 A2[r, j] = -1.0;
@@ -491,7 +243,6 @@ namespace LPR381_Solver.Algorithms
                 r++;
             }
 
-            //  x <= 1
             for (int j = 0; j < decisionCount; j++)
             {
                 A2[r, j] = 1.0;
@@ -500,7 +251,6 @@ namespace LPR381_Solver.Algorithms
                 r++;
             }
 
-            // branch bounds
             if (cons != null)
             {
                 foreach (var c in cons)
@@ -528,7 +278,6 @@ namespace LPR381_Solver.Algorithms
             cf.b = b2;
             cf.Signs = s2;
             return cf;
->>>>>>> Stashed changes
         }
     }
 }

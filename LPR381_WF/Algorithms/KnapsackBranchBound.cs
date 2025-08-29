@@ -5,6 +5,11 @@ using LPR381.Core;
 
 namespace LPR381_Solver.Algorithms
 {
+    public interface IKnapsackLogger
+    {
+        void Log(string message);
+        void LogHeader(string title);
+    }
     public class KnapsackItem
     {
         public int Index { get; set; }
@@ -25,14 +30,14 @@ namespace LPR381_Solver.Algorithms
 
     public class KnapsackBranchBound
     {
-        private readonly LPR381.Core.IIterationLogger _log;
+        private readonly IKnapsackLogger _log;
         private double _capacity;
         private List<KnapsackItem> _items;
         private double _bestValue;
         private bool[] _bestSolution;
         private int _nodeCount;
 
-        public KnapsackBranchBound(LPR381.Core.IIterationLogger logger)
+        public KnapsackBranchBound(IKnapsackLogger logger)
         {
             _log = logger;
         }

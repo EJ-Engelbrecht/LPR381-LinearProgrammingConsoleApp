@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -46,23 +46,19 @@ namespace LPR381_WF
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // 🌙 Apply dark theme
             this.BackColor = Color.FromArgb(45, 45, 48);
             this.ForeColor = Color.White;
             this.Font = new Font("Segoe UI", 10);
 
-            // 🧾 Style output box
             rtbOutput.BackColor = Color.FromArgb(30, 30, 35);
             rtbOutput.ForeColor = Color.White;
             rtbOutput.Font = new Font("Consolas", 10);
 
-            // 🎛️ Style ComboBoxes
             cbxAlgo.BackColor = cbxSensitivity.BackColor = Color.FromArgb(30, 30, 35);
             cbxAlgo.ForeColor = cbxSensitivity.ForeColor = Color.White;
             cbxAlgo.FlatStyle = cbxSensitivity.FlatStyle = FlatStyle.Flat;
             cbxAlgo.Font = cbxSensitivity.Font = new Font("Segoe UI", 10);
 
-            // 🎨 Style Buttons
             StyleButton(btnSolve, Color.SteelBlue);
             StyleButton(btnTextFile, Color.DarkSlateBlue);
             StyleButton(btnClear, Color.DimGray);
@@ -71,7 +67,6 @@ namespace LPR381_WF
             StyleButton(btnSensitivity, Color.Teal);
             StyleButton(btnExport, Color.DarkGreen);
 
-            // 📝 Initial instructions
             rtbOutput.Text = "=== LINEAR PROGRAMMING SOLVER - LPR381 PROJECT ===\n\n";
             rtbOutput.AppendText("INSTRUCTIONS:\n");
             rtbOutput.AppendText("1. Click 'Add Text File' to load an LP problem\n");
@@ -92,15 +87,6 @@ namespace LPR381_WF
 
         private void InitializeComboBox()
         {
-            cbxAlgo.Items.Clear();
-            cbxAlgo.Items.AddRange(new string[] {
-                "Primal Simplex",
-                "Revised Primal Simplex", 
-                "Dual Simplex",
-                "Branch and Bound Simplex",
-                "Cutting Plane",
-                "Branch and Bound Knapsack"
-            });
             cbxAlgo.SelectedIndex = 0;
         }
 
@@ -152,28 +138,12 @@ namespace LPR381_WF
                         pgbShow.Value = 90;
                         break;
 
-<<<<<<< Updated upstream
-                    case "Revised Primal Simplex":
-                        pgbShow.Value = 20;
-                        var revisedSimplex = new LPR381_Solver.Algorithms.RevisedSimplex(logger);
-                        pgbShow.Value = 40;
-                        result = revisedSimplex.Solve(currentCanonicalForm);
-                        pgbShow.Value = 90;
-                        break;
-
-                    case "Branch and Bound Simplex":
-                        pgbShow.Value = 20;
-                        var branchBound = new LPR381_Solver.Algorithms.BranchAndBound(logger);
-                        pgbShow.Value = 40;
-                        result = branchBound.Solve(currentCanonicalForm);
-=======
                     case "Branch and Bound Simplex":
                         pgbShow.Value = 20;
                         var bbLogger = new Utils.IterationLogger(rtbOutput);
                         var bbSimplex = new PrimalSimplex(bbLogger);
                         var branchBound = new BranchAndBound(bbSimplex, bbLogger);
                         
-                        // Get integer variables (assume all variables are integer for demo)
                         var intVars = new HashSet<int>();
                         for (int i = 0; i < currentModel.Variables.Count; i++)
                         {
@@ -181,7 +151,6 @@ namespace LPR381_WF
                                 intVars.Add(i);
                         }
                         
-                        // If no integer variables specified, assume first two are integer
                         if (intVars.Count == 0)
                         {
                             intVars.Add(0);
@@ -189,16 +158,7 @@ namespace LPR381_WF
                         }
                         
                         pgbShow.Value = 40;
-                        var bbResult = branchBound.Solve(currentCanonicalForm, 1e-6);
-                        
-                        // Convert BbResult to SolveResult
-                        result = new SolveResult
-                        {
-                            Status = bbResult.Status,
-                            Objective = bbResult.Objective,
-                            X = bbResult.X,
-                            Iterations = 0
-                        };
+                        result = branchBound.Solve(currentCanonicalForm, 1e-6);
                         pgbShow.Value = 90;
                         break;
 
@@ -207,7 +167,6 @@ namespace LPR381_WF
                         var rsLogger = new Utils.IterationLogger(rtbOutput);
                         var revisedSimplex = new RevisedSimplex(rsLogger);
                         
-                        // Convert CanonicalForm to RevisedCanonicalForm
                         var revisedCF = new RevisedCanonicalForm
                         {
                             Sense = currentCanonicalForm.Sense == ProblemSense.Max ? RevisedProblemSense.Max : RevisedProblemSense.Min,
@@ -221,22 +180,15 @@ namespace LPR381_WF
                         
                         pgbShow.Value = 40;
                         result = revisedSimplex.Solve(revisedCF);
->>>>>>> Stashed changes
                         pgbShow.Value = 90;
                         break;
 
                     case "Cutting Plane":
                         pgbShow.Value = 20;
-<<<<<<< Updated upstream
-                        var cuttingPlane = new LPR381_Solver.Algorithms.CuttingPlane(logger);
-                        pgbShow.Value = 40;
-                        result = cuttingPlane.Solve(currentCanonicalForm);
-=======
                         var cpLogger = new Utils.IterationLogger(rtbOutput);
                         var cpSimplex = new PrimalSimplex(cpLogger);
                         var cuttingPlane = new CuttingPlane(cpSimplex, cpLogger);
                         
-                        // Get integer variables
                         var cpIntVars = new HashSet<int>();
                         for (int i = 0; i < currentModel.Variables.Count; i++)
                         {
@@ -244,7 +196,6 @@ namespace LPR381_WF
                                 cpIntVars.Add(i);
                         }
                         
-                        // If no integer variables specified, assume all are integer
                         if (cpIntVars.Count == 0)
                         {
                             for (int i = 0; i < currentModel.Variables.Count; i++)
@@ -252,52 +203,26 @@ namespace LPR381_WF
                         }
                         
                         pgbShow.Value = 40;
-                        result = cuttingPlane.Solve(currentCanonicalForm, cpIntVars, currentModel.Variables.Count);
->>>>>>> Stashed changes
+                        result = cuttingPlane.Solve(currentCanonicalForm, cpIntVars);
                         pgbShow.Value = 90;
                         break;
 
                     case "Branch and Bound Knapsack":
                         pgbShow.Value = 20;
-<<<<<<< Updated upstream
-                        var knapsackBB = new LPR381_Solver.Algorithms.KnapsackBranchBound(logger);
-                        pgbShow.Value = 40;
-                        result = knapsackBB.Solve(currentCanonicalForm);
-                        pgbShow.Value = 90;
-                        break;
-
-                    case "Dual Simplex":
-                        pgbShow.Value = 20;
-                        var dualSimplex = new LPR381_Solver.Algorithms.DualSimplex(logger);
-                        pgbShow.Value = 40;
-                        result = dualSimplex.Solve(currentCanonicalForm);
-=======
                         var kbLogger = new KnapsackLoggerAdapter(logger);
                         var knapsackBB = new KnapsackBranchBound(kbLogger);
                         
-                        // Extract knapsack data from canonical form
-                        double capacity = currentCanonicalForm.b[0]; // assume first constraint is capacity
+                        double capacity = currentCanonicalForm.b[0];
                         double[] weights = new double[currentCanonicalForm.N];
                         double[] values = currentCanonicalForm.c;
                         
-                        // Extract weights from first constraint
                         for (int i = 0; i < currentCanonicalForm.N; i++)
                         {
                             weights[i] = currentCanonicalForm.A[0, i];
                         }
                         
                         pgbShow.Value = 40;
-                        var kbResult = knapsackBB.Solve(capacity, weights, values);
-                        
-                        // Convert KnapsackResult to SolveResult
-                        result = new SolveResult
-                        {
-                            Status = kbResult.Status,
-                            Objective = kbResult.Objective,
-                            X = kbResult.X,
-                            Iterations = kbResult.Iterations
-                        };
->>>>>>> Stashed changes
+                        result = knapsackBB.SolveKnapsack(capacity, weights, values);
                         pgbShow.Value = 90;
                         break;
 
@@ -383,33 +308,33 @@ namespace LPR381_WF
         }
 
         private void btnExport_Click(object sender, EventArgs e)
-{
-    if (currentModel == null)
-    {
-        MessageBox.Show("No results to export. Please solve a problem first.", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        return;
-    }
-
-    using (SaveFileDialog saveDialog = new SaveFileDialog())
-    {
-        saveDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-        saveDialog.Title = "Export Results";
-        saveDialog.FileName = "lp_solution_output.txt";
-
-        if (saveDialog.ShowDialog() == DialogResult.OK)
         {
-            try
+            if (currentModel == null)
             {
-                File.WriteAllText(saveDialog.FileName, rtbOutput.Text);
-                MessageBox.Show($"Results exported successfully to {saveDialog.FileName}", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("No results to export. Please solve a problem first.", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            catch (Exception ex)
+
+            using (SaveFileDialog saveDialog = new SaveFileDialog())
             {
-                MessageBox.Show($"Error exporting file: {ex.Message}", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                saveDialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                saveDialog.Title = "Export Results";
+                saveDialog.FileName = "lp_solution_output.txt";
+
+                if (saveDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        File.WriteAllText(saveDialog.FileName, rtbOutput.Text);
+                        MessageBox.Show($"Results exported successfully to {saveDialog.FileName}", "Export Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error exporting file: {ex.Message}", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
         }
-    }
-}
 
         private CanonicalForm ConvertToCanonicalForm(LPModel model)
         {
