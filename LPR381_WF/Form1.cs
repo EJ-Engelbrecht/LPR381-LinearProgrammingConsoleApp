@@ -9,10 +9,30 @@ using LPR381_Solver.Models;
 using LPR381_Solver.Utils;
 using LPR381_WF.Utils;
 using ProgressLogger = LPR381_WF.Utils.ProgressLogger;
-using SimplePrimalSimplex = LPR381_Solver.Algorithms.SimplePrimalSimplex;
+using System.Collections.Generic;
 
 namespace LPR381_WF
 {
+    public class KnapsackLoggerAdapter : IKnapsackLogger
+    {
+        private readonly IIterationLogger _logger;
+        
+        public KnapsackLoggerAdapter(IIterationLogger logger)
+        {
+            _logger = logger;
+        }
+        
+        public void Log(string message)
+        {
+            _logger.Log(message);
+        }
+        
+        public void LogHeader(string title)
+        {
+            _logger.LogHeader(title);
+        }
+    }
+    
     public partial class Form1 : Form
     {
         private LPModel currentModel;
@@ -125,13 +145,14 @@ namespace LPR381_WF
                 {
                     case "Primal Simplex":
                         pgbShow.Value = 20;
-                        var progressLogger = new ProgressLogger(rtbOutput, pgbShow, 10);
-                        var primalSimplex = new SimplePrimalSimplex(progressLogger);
+                        var simpleLogger = new Utils.IterationLogger(rtbOutput);
+                        var primalSimplex = new PrimalSimplex(simpleLogger);
                         pgbShow.Value = 40;
                         result = primalSimplex.Solve(currentCanonicalForm);
                         pgbShow.Value = 90;
                         break;
 
+<<<<<<< Updated upstream
                     case "Revised Primal Simplex":
                         pgbShow.Value = 20;
                         var revisedSimplex = new LPR381_Solver.Algorithms.RevisedSimplex(logger);
@@ -145,19 +166,100 @@ namespace LPR381_WF
                         var branchBound = new LPR381_Solver.Algorithms.BranchAndBound(logger);
                         pgbShow.Value = 40;
                         result = branchBound.Solve(currentCanonicalForm);
+=======
+                    case "Branch and Bound Simplex":
+                        pgbShow.Value = 20;
+                        var bbLogger = new Utils.IterationLogger(rtbOutput);
+                        var bbSimplex = new PrimalSimplex(bbLogger);
+                        var branchBound = new BranchAndBound(bbSimplex, bbLogger);
+                        
+                        // Get integer variables (assume all variables are integer for demo)
+                        var intVars = new HashSet<int>();
+                        for (int i = 0; i < currentModel.Variables.Count; i++)
+                        {
+                            if (currentModel.Variables[i].IsInteger)
+                                intVars.Add(i);
+                        }
+                        
+                        // If no integer variables specified, assume first two are integer
+                        if (intVars.Count == 0)
+                        {
+                            intVars.Add(0);
+                            if (currentModel.Variables.Count > 1) intVars.Add(1);
+                        }
+                        
+                        pgbShow.Value = 40;
+                        var bbResult = branchBound.Solve(currentCanonicalForm, 1e-6);
+                        
+                        // Convert BbResult to SolveResult
+                        result = new SolveResult
+                        {
+                            Status = bbResult.Status,
+                            Objective = bbResult.Objective,
+                            X = bbResult.X,
+                            Iterations = 0
+                        };
+                        pgbShow.Value = 90;
+                        break;
+
+                    case "Revised Primal Simplex":
+                        pgbShow.Value = 20;
+                        var rsLogger = new Utils.IterationLogger(rtbOutput);
+                        var revisedSimplex = new RevisedSimplex(rsLogger);
+                        
+                        // Convert CanonicalForm to RevisedCanonicalForm
+                        var revisedCF = new RevisedCanonicalForm
+                        {
+                            Sense = currentCanonicalForm.Sense == ProblemSense.Max ? RevisedProblemSense.Max : RevisedProblemSense.Min,
+                            A = currentCanonicalForm.A,
+                            b = currentCanonicalForm.b,
+                            c = currentCanonicalForm.c,
+                            Signs = currentCanonicalForm.Signs.Select(s => s == ConstraintSign.LE ? RevisedConstraintSign.LE : 
+                                                                          s == ConstraintSign.GE ? RevisedConstraintSign.GE : 
+                                                                          RevisedConstraintSign.EQ).ToArray()
+                        };
+                        
+                        pgbShow.Value = 40;
+                        result = revisedSimplex.Solve(revisedCF);
+>>>>>>> Stashed changes
                         pgbShow.Value = 90;
                         break;
 
                     case "Cutting Plane":
                         pgbShow.Value = 20;
+<<<<<<< Updated upstream
                         var cuttingPlane = new LPR381_Solver.Algorithms.CuttingPlane(logger);
                         pgbShow.Value = 40;
                         result = cuttingPlane.Solve(currentCanonicalForm);
+=======
+                        var cpLogger = new Utils.IterationLogger(rtbOutput);
+                        var cpSimplex = new PrimalSimplex(cpLogger);
+                        var cuttingPlane = new CuttingPlane(cpSimplex, cpLogger);
+                        
+                        // Get integer variables
+                        var cpIntVars = new HashSet<int>();
+                        for (int i = 0; i < currentModel.Variables.Count; i++)
+                        {
+                            if (currentModel.Variables[i].IsInteger || currentModel.Variables[i].IsBinary)
+                                cpIntVars.Add(i);
+                        }
+                        
+                        // If no integer variables specified, assume all are integer
+                        if (cpIntVars.Count == 0)
+                        {
+                            for (int i = 0; i < currentModel.Variables.Count; i++)
+                                cpIntVars.Add(i);
+                        }
+                        
+                        pgbShow.Value = 40;
+                        result = cuttingPlane.Solve(currentCanonicalForm, cpIntVars, currentModel.Variables.Count);
+>>>>>>> Stashed changes
                         pgbShow.Value = 90;
                         break;
 
                     case "Branch and Bound Knapsack":
                         pgbShow.Value = 20;
+<<<<<<< Updated upstream
                         var knapsackBB = new LPR381_Solver.Algorithms.KnapsackBranchBound(logger);
                         pgbShow.Value = 40;
                         result = knapsackBB.Solve(currentCanonicalForm);
@@ -169,6 +271,33 @@ namespace LPR381_WF
                         var dualSimplex = new LPR381_Solver.Algorithms.DualSimplex(logger);
                         pgbShow.Value = 40;
                         result = dualSimplex.Solve(currentCanonicalForm);
+=======
+                        var kbLogger = new KnapsackLoggerAdapter(logger);
+                        var knapsackBB = new KnapsackBranchBound(kbLogger);
+                        
+                        // Extract knapsack data from canonical form
+                        double capacity = currentCanonicalForm.b[0]; // assume first constraint is capacity
+                        double[] weights = new double[currentCanonicalForm.N];
+                        double[] values = currentCanonicalForm.c;
+                        
+                        // Extract weights from first constraint
+                        for (int i = 0; i < currentCanonicalForm.N; i++)
+                        {
+                            weights[i] = currentCanonicalForm.A[0, i];
+                        }
+                        
+                        pgbShow.Value = 40;
+                        var kbResult = knapsackBB.Solve(capacity, weights, values);
+                        
+                        // Convert KnapsackResult to SolveResult
+                        result = new SolveResult
+                        {
+                            Status = kbResult.Status,
+                            Objective = kbResult.Objective,
+                            X = kbResult.X,
+                            Iterations = kbResult.Iterations
+                        };
+>>>>>>> Stashed changes
                         pgbShow.Value = 90;
                         break;
 

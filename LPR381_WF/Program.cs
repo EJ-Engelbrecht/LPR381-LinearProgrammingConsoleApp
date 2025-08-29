@@ -14,6 +14,9 @@ namespace LPR381_WF
         [STAThread]
         static void Main()
         {
+            // Uncomment the line below to run console tests
+            // TestAlgorithms.RunTests();
+            
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());

@@ -6,6 +6,7 @@ namespace LPR381_Solver.Models
     {
         public string Name { get; set; }
         public bool IsInteger { get; set; }
+        public bool IsBinary { get; set; }
         public double Value { get; set; }
         public double LowerBound { get; set; } = 0;
         public double UpperBound { get; set; } = double.MaxValue;

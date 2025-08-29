@@ -19,8 +19,11 @@ namespace LPR381_WF.Utils
         public void Log(string line)
         {
             _logLines.Add(line);
-            _output?.AppendText(line + "\n");
-            _output?.ScrollToCaret();
+            if (_output != null && !_output.IsDisposed)
+            {
+                _output.AppendText(line + "\n");
+                _output.ScrollToCaret();
+            }
             Application.DoEvents();
         }
 
@@ -28,8 +31,11 @@ namespace LPR381_WF.Utils
         {
             var header = $"\n=== {title} ===";
             _logLines.Add(header);
-            _output?.AppendText(header + "\n");
-            _output?.ScrollToCaret();
+            if (_output != null && !_output.IsDisposed)
+            {
+                _output.AppendText(header + "\n");
+                _output.ScrollToCaret();
+            }
             Application.DoEvents();
         }
 
@@ -68,7 +74,8 @@ namespace LPR381_WF.Utils
         public void Clear()
         {
             _logLines.Clear();
-            _output?.Clear();
+            if (_output != null && !_output.IsDisposed)
+                _output.Clear();
         }
     }
 }

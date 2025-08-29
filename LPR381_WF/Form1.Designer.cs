@@ -71,12 +71,9 @@ namespace LPR381_WF
             this.cbxAlgo.Items.AddRange(new object[] {
             "Primal Simplex",
             "Revised Primal Simplex",
-            "Dual Simplex",
             "Cutting Plane",
             "Branch and Bound Simplex",
-            "Revised Branch and Bound Simplex",
             "Branch and Bound Knapsack",
-            "Graphical Method",
             "Non-Linear Solver (Bonus)"});
             this.cbxAlgo.Location = new System.Drawing.Point(112, 16);
             this.cbxAlgo.Name = "cbxAlgo";
