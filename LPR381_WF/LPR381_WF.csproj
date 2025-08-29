@@ -51,9 +51,11 @@
     <Compile Include="Algorithms\DualitySolver.cs" />
     <Compile Include="Algorithms\DualSimplex.cs" />
     <Compile Include="Algorithms\KnapsackBranchBound.cs" />
+    <Compile Include="Algorithms\NonlinearSteepest.cs" />
     <Compile Include="Algorithms\PrimalSimplex.cs" />
     <Compile Include="Algorithms\RevisedSimplex.cs" />
     <Compile Include="Algorithms\SimplePrimalSimplex.cs" />
+    <Compile Include="Algorithms\SteepestLineSearch.cs" />
     <Compile Include="Displays\BranchAndBoundDisplay.cs" />
     <Compile Include="Displays\CuttingPlaneDisplay.cs" />
     <Compile Include="Displays\KnapsackDisplay.cs" />

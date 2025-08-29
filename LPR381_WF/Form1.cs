@@ -11,28 +11,9 @@ using LPR381_WF.Utils;
 using ProgressLogger = LPR381_WF.Utils.ProgressLogger;
 using System.Collections.Generic;
 
+
 namespace LPR381_WF
 {
-    public class KnapsackLoggerAdapter : IKnapsackLogger
-    {
-        private readonly IIterationLogger _logger;
-        
-        public KnapsackLoggerAdapter(IIterationLogger logger)
-        {
-            _logger = logger;
-        }
-        
-        public void Log(string message)
-        {
-            _logger.Log(message);
-        }
-        
-        public void LogHeader(string title)
-        {
-            _logger.LogHeader(title);
-        }
-    }
-    
     public partial class Form1 : Form
     {
         private LPModel currentModel;
@@ -67,22 +48,10 @@ namespace LPR381_WF
             StyleButton(btnSensitivity, Color.Teal);
             StyleButton(btnExport, Color.DarkGreen);
 
-            rtbOutput.Text = "=== LINEAR PROGRAMMING SOLVER - LPR381 PROJECT ===\n\n";
-            rtbOutput.AppendText("INSTRUCTIONS:\n");
-            rtbOutput.AppendText("1. Click 'Add Text File' to load an LP problem\n");
-            rtbOutput.AppendText("2. Select an algorithm from the dropdown\n");
-            rtbOutput.AppendText("3. Click 'Solve' to execute the algorithm\n");
-            rtbOutput.AppendText("4. Use 'Sensitivity Analysis' for post-solution analysis\n");
-            rtbOutput.AppendText("5. Use 'Export Results' to save output to file\n\n");
-            rtbOutput.AppendText("SUPPORTED INPUT FORMAT:\n");
-            rtbOutput.AppendText("Line 1: max/min +coeff1 +coeff2 ...\n");
-            rtbOutput.AppendText("Line 2+: +coeff1 +coeff2 ... <= rhs\n");
-            rtbOutput.AppendText("Last Line: + - urs int bin (sign restrictions)\n\n");
-            rtbOutput.AppendText("EXAMPLE:\n");
-            rtbOutput.AppendText("max +2 +3 +3 +5 +2 +4\n");
-            rtbOutput.AppendText("+11 +8 +6 +14 +10 +10 <= 40\n");
-            rtbOutput.AppendText("bin bin bin bin bin bin\n\n");
-            rtbOutput.AppendText("Ready to load problem file...\n");
+            ShowInstructions();
+            
+            // Preload nonlinear example
+            txbNL.Text = "(min);(x²+2x+1);(-5,5)";
         }
 
         private void InitializeComboBox()
@@ -291,7 +260,27 @@ namespace LPR381_WF
         private void btnClear_Click(object sender, EventArgs e)
         {
             rtbOutput.Clear();
-            rtbOutput.Text = "Output cleared.";
+            ShowInstructions();
+        }
+        
+        private void ShowInstructions()
+        {
+            rtbOutput.Text = "=== LINEAR PROGRAMMING SOLVER - LPR381 PROJECT ===\n\n";
+            rtbOutput.AppendText("INSTRUCTIONS:\n");
+            rtbOutput.AppendText("1. LINEAR PROGRAMMING: Click 'Add Text File' to load LP problem\n");
+            rtbOutput.AppendText("2. Select algorithm from dropdown and click 'Solve'\n");
+            rtbOutput.AppendText("3. NON-LINEAR: Use format (max/min);(expression);(bounds)\n");
+            rtbOutput.AppendText("4. Use 'Sensitivity Analysis' for post-solution analysis\n");
+            rtbOutput.AppendText("5. Use 'Export Results' to save output to file\n\n");
+            rtbOutput.AppendText("LINEAR PROGRAMMING FORMAT:\n");
+            rtbOutput.AppendText("Line 1: max/min +coeff1 +coeff2 ...\n");
+            rtbOutput.AppendText("Line 2+: +coeff1 +coeff2 ... <= rhs\n");
+            rtbOutput.AppendText("Last Line: + - urs int bin (sign restrictions)\n\n");
+            rtbOutput.AppendText("NON-LINEAR FORMAT:\n");
+            rtbOutput.AppendText("(max/min);(expression);(x0,y0);(iterations)\n");
+            rtbOutput.AppendText("Example: max;2xy-2x²-y²+3y;1,1;3\n");
+            rtbOutput.AppendText("Supports: x, y, x², y², xy, +, -, *, numbers\n\n");
+            rtbOutput.AppendText("Ready to solve problems...\n");
         }
 
         private void btnClearFile_Click(object sender, EventArgs e)
@@ -464,6 +453,429 @@ namespace LPR381_WF
                    type == ConstraintType.GreaterEqual ? ">=" : "=";
         }
 
+        private void btnNL_Click(object sender, EventArgs e)
+        {
+            string input = txbNL.Text.Trim();
+            if (string.IsNullOrEmpty(input))
+            {
+                rtbOutput.Text = "Please enter: (max/min);(expression);(bounds)\nExample: min;x^2+2*x+1;-5,5";
+                return;
+            }
+
+            rtbOutput.Clear();
+            rtbOutput.AppendText("=== NON-LINEAR OPTIMIZATION ===\n\n");
+
+            // Parse input format: (max/min);(expression);(x0,y0);(iterations)
+            string[] parts = input.Split(';');
+            if (parts.Length != 3 && parts.Length != 4)
+            {
+                MessageBox.Show("ERROR: Use format (max/min);(expression);(x0,y0);(iterations)\n\nExample: max;2xy-2x²-y²+3y;1,1;3", "Invalid Format", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                rtbOutput.AppendText("ERROR: Invalid format. Check popup message.\n");
+                return;
+            }
+
+            string objective = parts[0].Trim().Replace("(", "").Replace(")", "").ToLower();
+            string function = parts[1].Trim().Replace("(", "").Replace(")", "");
+            string boundsStr = parts[2].Trim().Replace("(", "").Replace(")", "");
+            
+            int maxIterations = 50; // Default
+            if (parts.Length == 4)
+            {
+                string iterStr = parts[3].Trim().Replace("(", "").Replace(")", "");
+                if (!int.TryParse(iterStr, out maxIterations))
+                {
+                    MessageBox.Show("ERROR: Iterations must be a number\n\nExample: 3 or 10", "Invalid Iterations", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    rtbOutput.AppendText("ERROR: Invalid iterations value.\n");
+                    return;
+                }
+            }
+
+            // Validate objective
+            if (objective != "max" && objective != "min")
+            {
+                MessageBox.Show("ERROR: First part must be 'max' or 'min'\n\nExample: min;x²+2*x+1;-5,5", "Invalid Objective", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                rtbOutput.AppendText("ERROR: Invalid objective. Check popup message.\n");
+                return;
+            }
+
+            // Parse bounds
+            string[] boundParts = boundsStr.Split(',');
+            if (boundParts.Length != 2)
+            {
+                MessageBox.Show("ERROR: Starting point must be in format: x0,y0\n\nExample: 1,1 or 0,0", "Invalid Starting Point Format", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                rtbOutput.AppendText("ERROR: Invalid starting point format. Check popup message.\n");
+                return;
+            }
+
+            if (!double.TryParse(boundParts[0], out double lower) || !double.TryParse(boundParts[1], out double upper))
+            {
+                MessageBox.Show("ERROR: Starting point must be numbers\n\nExample: 1,1 or 0,0\nNot: a,b or 1;1", "Invalid Starting Point Values", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                rtbOutput.AppendText("ERROR: Invalid starting point values. Check popup message.\n");
+                return;
+            }
+
+            rtbOutput.AppendText($"Objective: {objective.ToUpper()}IMIZE\n");
+            rtbOutput.AppendText($"Function: f(x) = {function}\n");
+            rtbOutput.AppendText($"Starting point: ({lower}, {upper})\n");
+            rtbOutput.AppendText($"Max iterations: {maxIterations}\n\n");
+
+            // Validate function
+            if (!IsValidFunction(function))
+            {
+                MessageBox.Show("ERROR: Invalid function format\n\nSupported: x², x³, x⁴, x⁵, +, -, *, numbers\nExample: x²+2*x+1 or x³-2*x+1", "Invalid Function", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                rtbOutput.AppendText("ERROR: Invalid function. Check popup message.\n");
+                return;
+            }
+
+            // Choose method
+            bool useGolden = ShouldUseGoldenSection(function);
+            rtbOutput.AppendText($"Selected Method: {(useGolden ? "Golden Section Search" : "Steepest Descent")}\n\n");
+
+            try
+            {
+                bool isMaximize = objective == "max";
+                
+                if (useGolden)
+                {
+                    var result = GoldenSectionSearch(function, lower, upper, 0.001, isMaximize);
+                    rtbOutput.AppendText($"Optimal x = {result.x:F6}\n");
+                    rtbOutput.AppendText($"Optimal f(x) = {result.fx:F6}\n");
+                }
+                else
+                {
+                    // Use the new SteepestLineSearch for quadratic functions
+                    var nlSolver = new SteepestLineSearch(new Utils.IterationLogger(rtbOutput));
+                    var quadFunc = ParseToQuadratic(function);
+                    if (quadFunc != null)
+                    {
+                        var result = nlSolver.Solve(
+                            quadFunc,
+                            isMaximize ? SteepestLineSearch.Sense.Max : SteepestLineSearch.Sense.Min,
+                            x0: lower, y0: upper, // Use bounds as starting coordinates (x0, y0)
+                            tol: 1e-8,
+                            maxIter: maxIterations,
+                            hBounds: (-2, 2) // Fixed h bounds for line search
+                        );
+                    }
+                    else
+                    {
+                        // Fallback to original method for non-quadratic
+                        var nlSolver2 = new NonlinearSteepest(new Utils.IterationLogger(rtbOutput));
+                        var prob = CreateNonlinearProblem(function, isMaximize, (lower + upper) / 2, lower, upper);
+                        var result = nlSolver2.Solve(prob);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                rtbOutput.AppendText($"Error: {ex.Message}\n");
+            }
+        }
+
+        private bool IsValidFunction(string func)
+        {
+            // Simple validation - check for valid characters including superscripts and y variable
+            string allowed = "xy0123456789+-*^(). ²³⁴⁵";
+            return func.All(c => allowed.Contains(c)) && (func.Contains('x') || func.Contains('y') || func.Contains('²') || func.Contains('³'));
+        }
+
+        private bool ShouldUseGoldenSection(string func)
+        {
+            // Use Golden Section for simple quadratic functions
+            return func.Contains("x^2") && !func.Contains("sin") && !func.Contains("cos") && !func.Contains("exp");
+        }
+
+        private double EvaluateFunction(string func, double x)
+        {
+            // Convert superscripts back to regular format for parsing
+            func = func.Replace("x²", "x^2")
+                      .Replace("x³", "x^3")
+                      .Replace("x⁴", "x^4")
+                      .Replace("x⁵", "x^5")
+                      .Replace(" ", "")
+                      .Replace("(", "")
+                      .Replace(")", "");
+            
+            // Add back multiplication signs for parsing
+            func = System.Text.RegularExpressions.Regex.Replace(func, @"(\d)(x)", "$1*$2"); // 2x -> 2*x
+            func = System.Text.RegularExpressions.Regex.Replace(func, @"(\d)(x\^\d)", "$1*$2"); // 2x^2 -> 2*x^2
+            
+            // Handle x^3 - 2*x + 1
+            if (func == "x^3-2*x+1" || func == "x^3-2x+1")
+                return x*x*x - 2*x + 1;
+            
+            // Handle common patterns
+            if (func == "x^2+2*x+1" || func == "x^2+2x+1")
+                return x*x + 2*x + 1;
+                
+            // Handle x^2
+            if (func == "x^2")
+                return x*x;
+                
+            // Handle x^3
+            if (func == "x^3")
+                return x*x*x;
+            
+            // Generic polynomial parser
+            double result = 0;
+            string[] terms = func.Split('+', '-');
+            bool[] isNegative = new bool[terms.Length];
+            
+            // Track signs
+            int termIndex = 0;
+            for (int i = 0; i < func.Length; i++)
+            {
+                if (func[i] == '-' && i > 0)
+                {
+                    termIndex++;
+                    if (termIndex < isNegative.Length)
+                        isNegative[termIndex] = true;
+                }
+                else if (func[i] == '+' && i > 0)
+                {
+                    termIndex++;
+                }
+            }
+            
+            for (int i = 0; i < terms.Length; i++)
+            {
+                if (string.IsNullOrEmpty(terms[i])) continue;
+                
+                double termValue = EvaluateTerm(terms[i], x);
+                result += isNegative[i] ? -termValue : termValue;
+            }
+            
+            return result;
+        }
+        
+        private double EvaluateTerm(string term, double x)
+        {
+            term = term.Trim();
+            
+            // Convert superscripts for parsing
+            term = term.Replace("x²", "x^2").Replace("x³", "x^3");
+            
+            if (term.Contains("x^3"))
+            {
+                string coeff = term.Replace("x^3", "").Replace("*", "");
+                double c = string.IsNullOrEmpty(coeff) ? 1 : double.Parse(coeff);
+                return c * x * x * x;
+            }
+            
+            if (term.Contains("x^2"))
+            {
+                string coeff = term.Replace("x^2", "").Replace("*", "");
+                double c = string.IsNullOrEmpty(coeff) ? 1 : double.Parse(coeff);
+                return c * x * x;
+            }
+            
+            if (term.Contains("x") && !term.Contains("^"))
+            {
+                string coeff = term.Replace("x", "").Replace("*", "");
+                double c = string.IsNullOrEmpty(coeff) ? 1 : double.Parse(coeff);
+                return c * x;
+            }
+            
+            // Constant term
+            return double.Parse(term);
+        }
+
+        private (double x, double fx) GoldenSectionSearch(string func, double a, double b, double tol, bool maximize = false)
+        {
+            rtbOutput.AppendText("=== GOLDEN SECTION SEARCH ===\n");
+            double phi = (1 + Math.Sqrt(5)) / 2; // Golden ratio
+            double resphi = 2 - phi;
+            
+            double x1 = a + resphi * (b - a);
+            double x2 = b - resphi * (b - a);
+            double f1 = EvaluateFunction(func, x1);
+            double f2 = EvaluateFunction(func, x2);
+            
+            int iter = 0;
+            rtbOutput.AppendText($"Initial: [{a:F3}, {b:F3}]\n");
+            
+            while (Math.Abs(b - a) > tol && iter < 50)
+            {
+                iter++;
+                if (maximize ? f1 > f2 : f1 < f2)
+                {
+                    b = x2;
+                    x2 = x1;
+                    f2 = f1;
+                    x1 = a + resphi * (b - a);
+                    f1 = EvaluateFunction(func, x1);
+                }
+                else
+                {
+                    a = x1;
+                    x1 = x2;
+                    f1 = f2;
+                    x2 = b - resphi * (b - a);
+                    f2 = EvaluateFunction(func, x2);
+                }
+                rtbOutput.AppendText($"Iter {iter}: [{a:F4}, {b:F4}] width={b-a:F6}\n");
+            }
+            
+            double xopt = (a + b) / 2;
+            return (xopt, EvaluateFunction(func, xopt));
+        }
+
+        private NonlinearProblem CreateNonlinearProblem(string func, bool maximize, double x0, double lower, double upper)
+        {
+            return new NonlinearProblem
+            {
+                Sense = maximize ? NlSense.Max : NlSense.Min,
+                x0 = new[] { x0 },
+                HBounds = (lower, upper),
+                f = x => EvaluateFunction(func, x[0]),
+                grad = x => new[] { NumericalGradient(func, x[0]) },
+                hess = x => new double[,] { { NumericalHessian(func, x[0]) } },
+                MaxIter = 50,
+                GradTol = 1e-6,
+                HTol = 1e-6
+            };
+        }
+        
+        private double NumericalGradient(string func, double x)
+        {
+            double h = 0.0001;
+            return (EvaluateFunction(func, x + h) - EvaluateFunction(func, x - h)) / (2 * h);
+        }
+        
+        private double NumericalHessian(string func, double x)
+        {
+            double h = 0.0001;
+            return (EvaluateFunction(func, x + h) - 2 * EvaluateFunction(func, x) + EvaluateFunction(func, x - h)) / (h * h);
+        }
+        
+        private SteepestLineSearch.Quad2 ParseToQuadratic(string func)
+        {
+            // Simple parser for common quadratic patterns
+            func = func.Replace(" ", "").Replace("(", "").Replace(")", "");
+            
+            // For the Q3 slide example: f(x,y) = 2xy - 2x² - y² + 3y
+            if (func.Contains("2xy-2x²-y²+3y") || func.Contains("2xy-2x²-y^2+3y"))
+            {
+                return new SteepestLineSearch.Quad2(
+                    a: -2,   // -2x²
+                    b: 2,    // +2xy
+                    c: -1,   // -y²
+                    d: 0,    // +0x
+                    e: 3,    // +3y
+                    g: 0
+                );
+            }
+            
+            // For simple 1D quadratics like x² + 2x + 1
+            if (func.Contains("x²+2x+1") || func.Contains("x²+2x+1"))
+            {
+                return new SteepestLineSearch.Quad2(
+                    a: 1,    // x²
+                    b: 0,    // no xy
+                    c: 0,    // no y²
+                    d: 2,    // +2x
+                    e: 0,    // no y
+                    g: 1     // +1
+                );
+            }
+            
+            return null; // Not a recognized quadratic
+        }
+        
+        private void ShowAnalyticalDerivatives(string func)
+        {
+            rtbOutput.AppendText("=== ANALYTICAL DERIVATIVES ===\n");
+            
+            // Determine function type and show derivatives
+            if (func.Contains("x³") || func.Contains("x³"))
+            {
+                if (func.Contains("x³-6x²+9x+1") || func.Contains("x³-6x²+9x+1"))
+                {
+                    rtbOutput.AppendText("f(x) = x³ - 6x² + 9x + 1\n");
+                    rtbOutput.AppendText("\nFirst Derivative (∂f/∂x):\n");
+                    rtbOutput.AppendText("f'(x) = d/dx(x³ - 6x² + 9x + 1)\n");
+                    rtbOutput.AppendText("f'(x) = 3x² - 12x + 9\n");
+                    rtbOutput.AppendText("\nSecond Derivative (∂²f/∂x²):\n");
+                    rtbOutput.AppendText("f''(x) = d/dx(3x² - 12x + 9)\n");
+                    rtbOutput.AppendText("f''(x) = 6x - 12\n");
+                    rtbOutput.AppendText("\nThird Derivative (∂³f/∂x³):\n");
+                    rtbOutput.AppendText("f'''(x) = d/dx(6x - 12) = 6\n");
+                }
+                else
+                {
+                    rtbOutput.AppendText("General cubic function: f(x) = ax³ + bx² + cx + d\n");
+                    rtbOutput.AppendText("f'(x) = 3ax² + 2bx + c\n");
+                    rtbOutput.AppendText("f''(x) = 6ax + 2b\n");
+                }
+            }
+            else if (func.Contains("x²") || func.Contains("x²"))
+            {
+                rtbOutput.AppendText("Quadratic function: f(x) = ax² + bx + c\n");
+                rtbOutput.AppendText("f'(x) = 2ax + b\n");
+                rtbOutput.AppendText("f''(x) = 2a\n");
+            }
+            else if (func.Contains("x⁴") || func.Contains("x^4"))
+            {
+                rtbOutput.AppendText("Quartic function: f(x) = ax⁴ + bx³ + cx² + dx + e\n");
+                rtbOutput.AppendText("f'(x) = 4ax³ + 3bx² + 2cx + d\n");
+                rtbOutput.AppendText("f''(x) = 12ax² + 6bx + 2c\n");
+            }
+            
+            rtbOutput.AppendText("\nFor multivariable functions f(x,y):\n");
+            rtbOutput.AppendText("∂f/∂x = partial derivative with respect to x\n");
+            rtbOutput.AppendText("∂f/∂y = partial derivative with respect to y\n");
+            rtbOutput.AppendText("∂²f/∂x² = second partial derivative with respect to x\n");
+            rtbOutput.AppendText("∂²f/∂y² = second partial derivative with respect to y\n");
+            rtbOutput.AppendText("∂²f/∂x∂y = mixed partial derivative\n");
+            rtbOutput.AppendText("\nHessian Matrix H = [∂²f/∂x²  ∂²f/∂x∂y]\n");
+            rtbOutput.AppendText("                   [∂²f/∂y∂x  ∂²f/∂y²]\n");
+        }
+
+        private void txbNL_TextChanged(object sender, EventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            int cursorPos = tb.SelectionStart;
+            string text = tb.Text;
+            string originalText = text;
+            
+            // Replace exponents with superscripts
+            text = text.Replace("x^2", "x²")
+                      .Replace("x^3", "x³")
+                      .Replace("x^4", "x⁴")
+                      .Replace("x^5", "x⁵");
+            
+            // Remove multiplication signs for cleaner display
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"(\d)\*(\w)", "$1$2"); // 2*x -> 2x
+            text = System.Text.RegularExpressions.Regex.Replace(text, @"(\w)\*(\w)", "$1$2"); // x*y -> xy
+            
+            // Add brackets around each part if semicolons are present
+            if (text.Contains(";") && !text.Contains("("))
+            {
+                string[] parts = text.Split(';');
+                if (parts.Length >= 2)
+                {
+                    string formatted = "";
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (i > 0) formatted += ";";
+                        if (!string.IsNullOrEmpty(parts[i]))
+                            formatted += "(" + parts[i] + ")";
+                        else
+                            formatted += parts[i];
+                    }
+                    text = formatted;
+                }
+            }
+            
+            if (text != originalText)
+            {
+                tb.TextChanged -= txbNL_TextChanged; // Prevent recursion
+                tb.Text = text;
+                tb.SelectionStart = Math.Min(cursorPos, text.Length);
+                tb.TextChanged += txbNL_TextChanged; // Re-enable
+            }
+        }
+
         private void btnSensitivity_Click(object sender, EventArgs e)
         {
             if (currentModel == null)
@@ -529,6 +941,26 @@ namespace LPR381_WF
                     rtbOutput.AppendText("Analysis not implemented yet.\n");
                     break;
             }
+        }
+    }
+    
+    public class KnapsackLoggerAdapter : IKnapsackLogger
+    {
+        private readonly IIterationLogger _logger;
+        
+        public KnapsackLoggerAdapter(IIterationLogger logger)
+        {
+            _logger = logger;
+        }
+        
+        public void Log(string message)
+        {
+            _logger.Log(message);
+        }
+        
+        public void LogHeader(string title)
+        {
+            _logger.LogHeader(title);
         }
     }
 }

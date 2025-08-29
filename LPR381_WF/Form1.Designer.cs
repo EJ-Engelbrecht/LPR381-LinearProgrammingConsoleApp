@@ -43,6 +43,9 @@ namespace LPR381_WF
             this.btnClearFile = new System.Windows.Forms.Button();
             this.cbxSensitivity = new System.Windows.Forms.ComboBox();
             this.lblSensitivity = new System.Windows.Forms.Label();
+            this.lblNL = new System.Windows.Forms.Label();
+            this.txbNL = new System.Windows.Forms.TextBox();
+            this.btnNL = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnSolve
@@ -75,7 +78,7 @@ namespace LPR381_WF
             "Branch and Bound Simplex",
             "Branch and Bound Knapsack",
             "Non-Linear Solver (Bonus)"});
-            this.cbxAlgo.Location = new System.Drawing.Point(112, 16);
+            this.cbxAlgo.Location = new System.Drawing.Point(91, 16);
             this.cbxAlgo.Name = "cbxAlgo";
             this.cbxAlgo.Size = new System.Drawing.Size(192, 21);
             this.cbxAlgo.TabIndex = 3;
@@ -129,7 +132,7 @@ namespace LPR381_WF
             // 
             // btnExport
             // 
-            this.btnExport.Location = new System.Drawing.Point(405, 409);
+            this.btnExport.Location = new System.Drawing.Point(483, 409);
             this.btnExport.Name = "btnExport";
             this.btnExport.Size = new System.Drawing.Size(80, 27);
             this.btnExport.TabIndex = 9;
@@ -147,7 +150,7 @@ namespace LPR381_WF
             // 
             // btnClearFile
             // 
-            this.btnClearFile.Location = new System.Drawing.Point(491, 409);
+            this.btnClearFile.Location = new System.Drawing.Point(569, 409);
             this.btnClearFile.Name = "btnClearFile";
             this.btnClearFile.Size = new System.Drawing.Size(80, 27);
             this.btnClearFile.TabIndex = 11;
@@ -169,19 +172,46 @@ namespace LPR381_WF
             "Add New Constraint",
             "Display Shadow Prices",
             "Duality Analysis"});
-            this.cbxSensitivity.Location = new System.Drawing.Point(592, 16);
+            this.cbxSensitivity.Location = new System.Drawing.Point(400, 16);
             this.cbxSensitivity.Name = "cbxSensitivity";
-            this.cbxSensitivity.Size = new System.Drawing.Size(192, 21);
+            this.cbxSensitivity.Size = new System.Drawing.Size(163, 21);
             this.cbxSensitivity.TabIndex = 12;
             // 
             // lblSensitivity
             // 
             this.lblSensitivity.AutoSize = true;
-            this.lblSensitivity.Location = new System.Drawing.Point(473, 19);
+            this.lblSensitivity.Location = new System.Drawing.Point(296, 19);
             this.lblSensitivity.Name = "lblSensitivity";
             this.lblSensitivity.Size = new System.Drawing.Size(98, 13);
             this.lblSensitivity.TabIndex = 13;
             this.lblSensitivity.Text = "Sensitivity Analysis:";
+            // 
+            // lblNL
+            // 
+            this.lblNL.AutoSize = true;
+            this.lblNL.Location = new System.Drawing.Point(588, 22);
+            this.lblNL.Name = "lblNL";
+            this.lblNL.Size = new System.Drawing.Size(59, 13);
+            this.lblNL.TabIndex = 14;
+            this.lblNL.Text = "Non-Linear";
+            // 
+            // txbNL
+            // 
+            this.txbNL.Location = new System.Drawing.Point(653, 15);
+            this.txbNL.Name = "txbNL";
+            this.txbNL.Size = new System.Drawing.Size(134, 20);
+            this.txbNL.TabIndex = 15;
+            this.txbNL.TextChanged += new System.EventHandler(this.txbNL_TextChanged);
+            // 
+            // btnNL
+            // 
+            this.btnNL.Location = new System.Drawing.Point(400, 409);
+            this.btnNL.Name = "btnNL";
+            this.btnNL.Size = new System.Drawing.Size(86, 27);
+            this.btnNL.TabIndex = 16;
+            this.btnNL.Text = "Non Linear";
+            this.btnNL.UseVisualStyleBackColor = true;
+            this.btnNL.Click += new System.EventHandler(this.btnNL_Click);
             // 
             // Form1
             // 
@@ -189,6 +219,9 @@ namespace LPR381_WF
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.White;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.btnNL);
+            this.Controls.Add(this.txbNL);
+            this.Controls.Add(this.lblNL);
             this.Controls.Add(this.lblSensitivity);
             this.Controls.Add(this.cbxSensitivity);
             this.Controls.Add(this.btnClearFile);
@@ -225,6 +258,9 @@ namespace LPR381_WF
         private System.Windows.Forms.Button btnClearFile;
         private System.Windows.Forms.ComboBox cbxSensitivity;
         private System.Windows.Forms.Label lblSensitivity;
+        private System.Windows.Forms.Label lblNL;
+        private System.Windows.Forms.TextBox txbNL;
+        private System.Windows.Forms.Button btnNL;
     }
 }
 
