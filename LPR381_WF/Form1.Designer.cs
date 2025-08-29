@@ -82,6 +82,7 @@ namespace LPR381_WF
             this.cbxAlgo.Name = "cbxAlgo";
             this.cbxAlgo.Size = new System.Drawing.Size(192, 21);
             this.cbxAlgo.TabIndex = 3;
+            this.cbxAlgo.SelectedIndexChanged += new System.EventHandler(this.cbxAlgo_SelectedIndexChanged);
             // 
             // btnExit
             // 
@@ -100,6 +101,7 @@ namespace LPR381_WF
             this.rtbOutput.Size = new System.Drawing.Size(856, 311);
             this.rtbOutput.TabIndex = 5;
             this.rtbOutput.Text = "";
+            this.rtbOutput.TextChanged += new System.EventHandler(this.rtbOutput_TextChanged);
             // 
             // lblAlgorithm
             // 
@@ -176,6 +178,7 @@ namespace LPR381_WF
             this.cbxSensitivity.Name = "cbxSensitivity";
             this.cbxSensitivity.Size = new System.Drawing.Size(192, 21);
             this.cbxSensitivity.TabIndex = 12;
+            this.cbxSensitivity.SelectedIndexChanged += new System.EventHandler(this.cbxSensitivity_SelectedIndexChanged);
             // 
             // lblSensitivity
             // 

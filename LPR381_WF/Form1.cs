@@ -22,6 +22,13 @@ namespace LPR381_WF
         public Form1()
         {
             InitializeComponent();
+            // Maximize to fit screen
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = true;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Size = new Size(920, 480); 
+
             InitializeComboBox();
         }
 
@@ -47,11 +54,13 @@ namespace LPR381_WF
             StyleButton(btnExit, Color.Firebrick);
             StyleButton(btnSensitivity, Color.Teal);
             StyleButton(btnExport, Color.DarkGreen);
+            StyleButton(btnNL, Color.Orange);
 
             ShowInstructions();
             
             // Preload nonlinear example
-            txbNL.Text = "(min);(x²+2x+1);(-5,5)";
+            txbNL.Text = "min[(x³ + 2x + 1)(x - 5.5)] : [0, 5]";
+            ApplyTextBoxStyle(txbNL);
         }
 
         private void InitializeComboBox()
@@ -66,6 +75,14 @@ namespace LPR381_WF
             btn.ForeColor = Color.White;
             btn.FlatStyle = FlatStyle.Flat;
             btn.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+        }
+
+        private void ApplyTextBoxStyle(TextBox tb)
+        {
+            tb.BackColor = Color.FromArgb(30, 30, 30); // Dark background
+            tb.ForeColor = Color.White;               // Light text
+            tb.BorderStyle = BorderStyle.FixedSingle;
+            tb.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
         }
 
         private void btnSolve_Click(object sender, EventArgs e)
@@ -942,8 +959,23 @@ namespace LPR381_WF
                     break;
             }
         }
+
+        private void rtbOutput_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cbxSensitivity_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void cbxAlgo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
-    
+
     public class KnapsackLoggerAdapter : IKnapsackLogger
     {
         private readonly IIterationLogger _logger;
